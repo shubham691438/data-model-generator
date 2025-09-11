@@ -1,0 +1,711 @@
+{
+  "templates": {
+    "ashby_application_write_template": {
+      "description": "Complete Ashby-style APPLICATION write integration template",
+      "dataModel": "APPLICATION",
+      "integrationType": "WRITE_REST_API",
+      "integrations": [
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-candidate-application-post-start-chain",
+          "method": "GET",
+          "apiPath": "dummy",
+          "headers": {},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {"requestBody": "", "requestBodyConverter": []},
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [{
+            "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+            "statusCode": 0,
+            "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because this is dummy integration to support dependency fields for next integration.\"}"
+          }],
+          "headersInResponse": false,
+          "integrationDependency": null,
+          "executionEligibilityRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "false"}]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-check-candidate-already-exists",
+          "method": "POST",
+          "apiPath": "/candidate.search",
+          "headers": {},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {"requestBody": "{\n  \"email\": \"${email}\" \n}", "requestBodyConverter": []},
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$count(results) > 0 and $exists(results[0].id) and $exists($.success) and $.success=true"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"candidateId\": results[0].id, \"integrationId\": \"{ats}-check-candidate-already-exists\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$count(results) = 0 and $exists($.success) and $.success=true"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"errorMessage\": $.errors, \"integrationId\": \"{ats}-check-candidate-already-exists\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists($.success) and $.success=false"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"errorMessage\": $.errors}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 401,
+              "jsonataConvertorExpression": "{\"errorMessage\": errorMessage}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 404,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"candidate not found for emailId\" }"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 0,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because data might be missing-{ats}-check-candidate-already-exists.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "queryType": "SINGLE_ENTITY",
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "dependencyFields": [{
+              "type": "RestApiIntegrationField",
+              "targetField": "email",
+              "jsonataExpression": "inputData.candidate.email",
+              "restApiIntegrationContext": "API_REQUEST_BODY"
+            }],
+            "dependentIntegrationId": "{ats}-candidate-application-post-start-chain"
+          },
+          "executionEligibilityRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null"
+          }]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-create-candidate",
+          "method": "POST",
+          "apiPath": "/candidate.create",
+          "headers": {},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null and $exists(inputData.candidate.fullName) and inputData.candidate.fullName != null"
+          }],
+          "requestPayload": {
+            "requestBody": "$merge([{\n  \"name\": \"${name}\",\n  \"email\": \"${email}\",\n  \"phoneNumber\": \"${phoneNumber}\",  \n   \"sourceId\": \"${sourceId}\",\n   \"location\": {\n    \"city\": \"${city}\",\n    \"region\":\"${state}\",\n    \"country\": \"${country}\"\n  }\n},\n(\n       $exists(inputData.application.customFields.questionAnswers.linkedInUrl) and inputData.application.customFields.questionAnswers.linkedInUrl !=null\n       ? {\"linkedInUrl\" : inputData.application.customFields.questionAnswers.linkedInUrl} : {}\n),\n(\n       $exists(inputData.application.customFields.questionAnswers.githubUrl) and inputData.application.customFields.questionAnswers.githubUrl !=null\n       ? {\"githubUrl\" : inputData.application.customFields.questionAnswers.githubUrl} : {}\n),\n(\n       $exists(inputData.application.customFields.questionAnswers.website) and inputData.application.customFields.questionAnswers.website !=null\n       ? {\"website\" : inputData.application.customFields.questionAnswers.website} : {}\n)\n\n])",
+            "requestBodyConverter": []
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(results.id) and results.id != null and  $exists($.success) and $.success=true"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"candidateId\": results.id, \"integrationId\": \"{ats}-create-candidate\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists($.success) and $.success=false"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"errorMessage\": $.errors}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 400,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"getting 400 error\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 401,
+              "jsonataConvertorExpression": "{\"errorMessage\": errorMessage,  \"integrationId\": \"{ats}-create-candidate\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 0,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because data might be missing-{ats}-create-candidate.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "queryType": "SINGLE_ENTITY",
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "name",
+                "jsonataExpression": "inputData.candidate.fullName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "email",
+                "jsonataExpression": "inputData.candidate.email",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "phoneNumber",
+                "jsonataExpression": "inputData.candidate.phoneNumbers.phoneNumber",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "city",
+                "jsonataExpression": "inputData.candidate.address.city",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "state",
+                "jsonataExpression": "$exists(inputData.candidate.customFields.questionAnswers.province) and inputData.candidate.customFields.questionAnswers.province !=null ?\n    inputData.candidate.customFields.questionAnswers.province : inputData.candidate.address.state",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "country",
+                "jsonataExpression": "inputData.candidate.address.country",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              }
+            ],
+            "dependentIntegrationId": "{ats}-check-candidate-already-exists"
+          },
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null and $exists(inputData.candidate.fullName) and inputData.candidate.fullName != null"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$not($exists(response.candidateId))"
+            }
+          ]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-upload-resume",
+          "method": "POST",
+          "apiPath": "/candidate.uploadResume",
+          "headers": {},
+          "authTypes": ["BASIC"],
+          "contentType": "MULTIPART_FORM_DATA",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {
+            "requestBody": "{\n    \"candidateId\" : \"${candidateId}\" ,\n    \"resume\": \"${attachmentContent}\"\n}",
+            "requestBodyConverter": [{"field": "resume", "fileConvertType": "Base64ToFile"}]
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(results.id) and results.id != null and  $exists($.success) and $.success=true"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"candidateId\": results.id, \"integrationId\": \"{ats}-upload-resume\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists($.success) and $.success=false"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"errorMessage\": $.errors}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 404,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Resume upload failed: Candidate or endpoint not found.\", \"integrationId\":\"{ats}-upload-resume\",\"response\": $}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 500,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"{ats} server error: \" & (error_message ? error_message : $string($)), \"integrationId\":\"{ats}-upload-resume\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 400,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"getting 400 error\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 0,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because data might be missing-{ats}-upload-resume.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "queryType": "SINGLE_ENTITY",
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "candidateId",
+                "jsonataExpression": "response.candidateId",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "attachmentContent",
+                "jsonataExpression": "inputData.application.attachment.attachmentContent",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              }
+            ],
+            "dependentIntegrationId": "{ats}-create-candidate"
+          },
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(inputData.application.attachment) and inputData.application.attachment != null and $exists(inputData.application.attachment.attachmentContent) and inputData.application.attachment.attachmentContent != null"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(response.candidateId)"
+            }
+          ]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-create-application",
+          "method": "POST",
+          "apiPath": "/application.create",
+          "headers": {},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {
+            "requestBody": "{\n  \"candidateId\": \"${candidateId}\",\n  \"jobId\": \"${jobId}\",\n  \"sourceId\": \"${sourceId}\"\n}",
+            "requestBodyConverter": []
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(results.id) and results.id != null and  $exists($.success) and $.success=true"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"applicationId\": results.id, \"candidateId\": \"${candidateId}\", \"jobId\": \"${jobId}\"}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists($.success) and $.success=false"}],
+              "statusCode": 200,
+              "jsonataConvertorExpression": "{\"errorMessage\": $.errors}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 400,
+              "jsonataConvertorExpression": "{\"errorMessage\":errorMessage}"
+            },
+            {
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "statusCode": 0,
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because data might be missing-{ats}-create-application.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "queryType": "SINGLE_ENTITY",
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "candidateId",
+                "jsonataExpression": "response.candidateId",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobId",
+                "jsonataExpression": "inputData.application.atsJobId",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobId",
+                "jsonataExpression": "inputData.application.atsJobId",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "candidateId",
+                "jsonataExpression": "response.candidateId",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              }
+            ],
+            "dependentIntegrationId": "{ats}-upload-resume"
+          },
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(response.candidateId)"
+            }
+          ]
+        }
+      ]
+    },
+    "greenhouse_application_write_template": {
+      "description": "Greenhouse-style APPLICATION write integration template",
+      "dataModel": "APPLICATION",
+      "integrationType": "WRITE_REST_API",
+      "integrations": [
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-candidate-application-post-start-chain",
+          "method": "POST",
+          "apiPath": "https://harvest.greenhouse.io/v1/candidates",
+          "headers": {"On-Behalf-Of": "4052730008"},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "((($exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null) or $exists(inputData.candidate.atsCandidateId) and inputData.candidate.atsCandidateId != null)) and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+          }],
+          "requestPayload": {"requestBody": "", "requestBodyConverter": []},
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [{
+            "statusCode": 0,
+            "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+            "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because this is dummy integration to support dependency fields for next integration.\"}"
+          }],
+          "headersInResponse": false,
+          "integrationDependency": null,
+          "executionEligibilityRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "false"}]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-candidate-application-post",
+          "method": "POST",
+          "apiPath": "https://harvest.greenhouse.io/v1/candidates",
+          "headers": {"On-Behalf-Of": "4052730008"},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {
+            "requestBody": "{\"first_name\":\"${firstName}\", \"last_name\":\"${lastName}\", \"applications\":[{\"job_id\":${jobId}}] }",
+            "requestBodyConverter": []
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "statusCode": 201,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(id) and id != null"}],
+              "jsonataConvertorExpression": "{ \"candidateId\": id, \"applicationId\": applications[0].id}"
+            },
+            {
+              "statusCode": 422,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{ \"errorMessage\": $string($)}"
+            },
+            {
+              "statusCode": 0,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because candidateId or jobId might not be present.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "dependentIntegrationId": "{ats}-candidate-application-post-start-chain",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "firstName",
+                "jsonataExpression": "inputData.candidate.firstName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "lastName",
+                "jsonataExpression": "inputData.candidate.lastName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobId",
+                "jsonataExpression": "inputData.application.atsJobId",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "executionEligibilityRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null and $not($exists(inputData.candidate.atsCandidateId) and inputData.candidate.atsCandidateId != null) and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+          }]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-candidate-application-post-attachment-post",
+          "method": "POST",
+          "apiPath": "https://harvest.greenhouse.io/v1/applications/${applicationId}/attachments",
+          "headers": {"On-Behalf-Of": "4052730008"},
+          "authTypes": ["BASIC"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+          "requestPayload": {
+            "requestBody": "{\"filename\":\"${fileName}\", \"type\":\"resume\", \"content\":\"${content}\", \"content_type\":\"${contentType}\"}",
+            "requestBodyConverter": []
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "statusCode": 201,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(url) and url != null"}],
+              "jsonataConvertorExpression": "{ \"resumeFilename\":$string(filename), \"resumeUrl\":$string(url), \"resumeType\":$string(type), \"resumeContentType\":$string(content_type)}"
+            },
+            {
+              "statusCode": 0,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because resume or application details might not be passed.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "dependentIntegrationId": "{ats}-candidate-application-post",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "fileName",
+                "jsonataExpression": "inputData.application.attachment.attachmentFileName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "content",
+                "jsonataExpression": "inputData.application.attachment.attachmentContent",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "contentType",
+                "jsonataExpression": "inputData.application.attachment.attachmentContentType",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "applicationId",
+                "jsonataExpression": "response.applicationId",
+                "restApiIntegrationContext": "API_PATH"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "executionEligibilityRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null and $not($exists(inputData.candidate.atsCandidateId) and inputData.candidate.atsCandidateId != null) and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null and $exists(response.applicationId) and response.applicationId != null and $exists(inputData.application.attachment.attachmentFileName) and inputData.application.attachment.attachmentFileName != null and $exists(inputData.application.attachment.attachmentContent) and inputData.application.attachment.attachmentContent != null and $exists(inputData.application.attachment.attachmentContentType) and inputData.application.attachment.attachmentContentType != null"
+          }]
+        }
+      ]
+    },
+    "simple_application_write_template": {
+      "description": "Simple APPLICATION write integration template for basic ATS systems",
+      "dataModel": "APPLICATION",
+      "integrationType": "WRITE_REST_API",
+      "integrations": [
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "{ats}-create-application",
+          "method": "POST",
+          "apiPath": "/api/applications",
+          "headers": {"X-API-KEY": "{{api_key}}", "Content-Type": "application/json"},
+          "authTypes": ["API_KEY"],
+          "contentType": "APPLICATION_JSON",
+          "queryParams": {},
+          "failSilently": false,
+          "dataModelRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+          }],
+          "requestPayload": {
+            "requestBody": "{\n  \"candidate\": {\n    \"firstName\": \"${firstName}\",\n    \"lastName\": \"${lastName}\",\n    \"email\": \"${email}\",\n    \"phone\": \"${phone}\"\n  },\n  \"jobId\": \"${jobId}\",\n  \"resume\": \"${resume}\"\n}",
+            "requestBodyConverter": []
+          },
+          "responseConfig": {"responseType": "SINGLE_ENTITY", "jsonataExpression": "$", "resPassingJsonataExpression": null},
+          "dataModelTarget": null,
+          "responseHandlers": [
+            {
+              "statusCode": 201,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(id) and id != null"}],
+              "jsonataConvertorExpression": "{\"applicationId\": id, \"candidateId\": candidateId, \"jobId\": jobId}"
+            },
+            {
+              "statusCode": 400,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Bad Request - Invalid data provided\"}"
+            },
+            {
+              "statusCode": 401,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Unauthorized - Invalid API key\"}"
+            },
+            {
+              "statusCode": 0,
+              "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because required data is missing.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "integrationDependency": {
+            "dependentIntegrationId": null,
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "firstName",
+                "jsonataExpression": "inputData.candidate.firstName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "lastName",
+                "jsonataExpression": "inputData.candidate.lastName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "email",
+                "jsonataExpression": "inputData.candidate.email",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "phone",
+                "jsonataExpression": "inputData.candidate.phoneNumbers.phoneNumber",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobId",
+                "jsonataExpression": "inputData.application.atsJobId",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "resume",
+                "jsonataExpression": "inputData.application.attachment.attachmentContent",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "executionEligibilityRules": [{
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null and $exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null"
+          }]
+        }
+      ]
+    }
+  },
+  "common_patterns": {
+    "response_handlers": {
+      "success_200": {
+        "statusCode": 200,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(id) and id != null"}],
+        "jsonataConvertorExpression": "{\"applicationId\": id, \"candidateId\": candidateId, \"jobId\": jobId}"
+      },
+      "success_201": {
+        "statusCode": 201,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(id) and id != null"}],
+        "jsonataConvertorExpression": "{\"applicationId\": id, \"candidateId\": candidateId, \"jobId\": jobId}"
+      },
+      "error_400": {
+        "statusCode": 400,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": \"Bad Request - Invalid data provided\"}"
+      },
+      "error_401": {
+        "statusCode": 401,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": \"Unauthorized - Invalid credentials\"}"
+      },
+      "error_404": {
+        "statusCode": 404,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": \"Not Found - Resource not found\"}"
+      },
+      "error_422": {
+        "statusCode": 422,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": $string($)}"
+      },
+      "error_500": {
+        "statusCode": 500,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": \"Internal Server Error\"}"
+      },
+      "not_executed": {
+        "statusCode": 0,
+        "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+        "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because required data is missing.\"}"
+      }
+    },
+    "data_model_rules": {
+      "basic_validation": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+        }
+      ],
+      "comprehensive_validation": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "($exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null) or ($exists(inputData.candidate.atsCandidateId) and inputData.candidate.atsCandidateId != null)"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null"
+        }
+      ]
+    },
+    "execution_eligibility_rules": {
+      "basic_requirements": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+        }
+      ],
+      "comprehensive_requirements": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.application.atsJobId) and inputData.application.atsJobId != null and $exists(inputData.candidate.fullName) and inputData.candidate.fullName != null"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$not($exists(response.candidateId))"
+        }
+      ]
+    }
+  }
+}

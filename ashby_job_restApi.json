@@ -1,0 +1,150 @@
+{
+  "dataModel": "JOB",
+  "integrationType": "REST_API",
+  "integrations": [
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "ashby-get-jobs-list",
+      "requestPayload":null,
+      "responseConfig": {
+        "responseType": "ARRAY_OF_ENTITIES",
+        "jsonataExpression": null,
+        "resPassingJsonataExpression": "$.results"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists($.success) and $.success = true"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$count($.results) > 0"
+        }
+      ],
+      "dataModelTarget": null,
+      "integrationDependency": null,
+      "failSilently": false,
+      "method": "POST",
+      "authTypes": [
+        "BASIC"
+      ],
+      "apiPath": "/jobPosting.list",
+      "headers": {
+        "accept": "application/json",
+        "content-type": "application/json"
+      },
+      "queryParams": {},
+      "contentType": "APPLICATION_JSON",
+      "paginationConfig": null,
+     
+      "dateRangeConfig": null,
+      "responseHandlers": [],
+      "executionEligibilityRules": []
+    },
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "ashby-get-job-details",
+      "responseConfig": {
+        "responseType": "SINGLE_ENTITY",
+        "jsonataExpression": "$.results",
+        "resPassingJsonataExpression": null
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists($)"
+        }
+      ],
+      "dataModelTarget": {
+        "targetFields": [
+          "JOVEO_JOB_ID",
+          "JOVEO_JOB_CUSTOMER_ID",
+          "ATS_JOB_ID",
+          "ATS_JOB_REF_NUMBER",
+          "ATS_JOB_TITLE",
+          "ATS_JOB_DESCRIPTION",
+          "ATS_JOB_URL",
+          "ATS_JOB_STATUS",
+          "ATS_JOB_DEPARTMENT",
+          "ATS_JOB_COMPANY",
+          "ATS_JOB_LOCATIONS",
+          "ATS_JOB_CREATED_DATE",
+          "ATS_JOB_LAST_UPDATED_DATE",
+          "ATS_JOB_START_DATE",
+          "ATS_JOB_END_DATE",
+          "ATS_JOB_INSERTED_AT",
+          "ATS_JOB_UPDATED_AT",
+          "ATS_JOB_IS_DELETED",
+          "ATS_JOB_CUSTOM_FIELDS",
+          "ATS_JOB_AUDIT",
+          "ATS_JOB_POSITION_CATEGORY",
+          "ATS_JOB_POSITION_LEVEL",
+          "ATS_JOB_REMOTE_TYPE",
+          "ATS_JOB_RECRUITERS",
+          "ATS_JOB_HIRING_MANAGERS"
+        ],
+        "targetOperation": "UPSERT",
+        "dataModelJsonataExpression":"{\n    \"atsJobId\": $.id,\n    \"refNumber\": $.jobId,\n    \"title\": $.title,\n    \"description\": $.descriptionHtml,\n    \"url\": $.externalLink,\n    \"status\": $.isListed ? \"OPEN\" : \"CLOSED\",\n    \"department\": $.departmentName,\n    \"company\": $.linkedData and $.linkedData.hiringOrganization ? $.linkedData.hiringOrganization.name : \"New Story\",\n    \"locations\": $.address and $.address.postalAddress ? [{\n        \"city\": $.address.postalAddress.addressLocality,\n        \"state\": $.address.postalAddress.addressRegion,\n        \"country\": $.address.postalAddress.addressCountry,\n        \"isPrimary\": true,\n        \"postalCode\": null\n    }] : null,\n    \"createdDate\": $fromMillis($toMillis($.publishedDate)),\n    \"lastUpdatedDate\":  $fromMillis($toMillis($.updatedAt)),\n    \"startDate\":  $fromMillis($toMillis($.publishedDate)),\n    \"endDate\":  $.applicationDeadline ?  $fromMillis($toMillis($.applicationDeadline.deadline)) : null,\n    \"updatedAt\": $now(),\n    \"insertedAt\": $now(),\n    \"isDeleted\": $.isListed = false,\n    \"positionCategory\": $.teamName,\n    \"positionLevel\": $.teamName,\n    \"remoteType\": $.employmentType,\n     \"customFields\": $\n}"
+      },
+      "integrationDependency": {
+        "dependentIntegrationId": "ashby-get-jobs-list",
+        "jsonDataType": "ARRAY_OF_PRIMITIVES",
+        "queryType": "SINGLE_ENTITY",
+        "dependencyFields": [
+          {
+            "type": "RestApiIntegrationField",
+            "targetField": "jobPostingId",
+            "jsonataExpression": "[$map($, function($job) {\n    $job.id\n})]",
+            "restApiIntegrationContext": "API_REQUEST_BODY"
+          }
+        ]          
+      },
+      "failSilently": false,
+      "method": "POST",
+      "authTypes": [
+        "BASIC"
+      ],
+      "apiPath": "/jobPosting.info",
+      "headers": {
+        "accept": "application/json",
+        "content-type": "application/json"
+      },
+      "queryParams": {},
+      "contentType": "APPLICATION_JSON",
+      "paginationConfig": null,
+      "requestPayload": {
+        "requestBody": "{\n  \"jobPostingId\": \"${jobPostingId}\"\n}",
+        "requestBodyConverter": []
+      },
+      "dateRangeConfig": null,
+      "responseHandlers": [
+        {
+          "statusCode": 200,
+          "bodyRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists($.success) and $.success = true"
+            }
+          ],
+          "jsonataConvertorExpression": "$"
+        },
+        {
+          "statusCode": 0,
+          "bodyRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed\"}"
+        }
+      ],
+      "executionEligibilityRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$count($) > 0"
+        }
+      ]
+    }
+  ]
+}

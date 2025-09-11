@@ -1,0 +1,74 @@
+[
+  {
+    "dataModel": "APPLICATION_STAGE",
+    "integrationType": "WEBHOOK",
+    "integrations": [
+      {
+        "type": "WebhookIntegration",
+        "integrationId": "ashby-application-stage-change-webhook",
+        "responseConfig": {
+          "responseType": "SINGLE_ENTITY",
+          "jsonataExpression": "$",
+          "resPassingJsonataExpression": null
+        },
+        "dataModelRules": [
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(id)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(candidate.id)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(job.id)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(currentInterviewStage)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(currentInterviewStage.id)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(currentInterviewStage.title)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(createdAt)"
+          },
+          {
+            "type": "BooleanExpressionRule",
+            "jsonataExpression": "$exists(updatedAt)"
+          }
+        ],
+        "dataModelTarget": {
+          "dataModelJsonataExpression": "{\n  \"atsApplicationId\": id,\n  \"atsCandidateId\": candidate.id,\n  \"atsJobId\": job.id,\n  \"stageId\": currentInterviewStage.id,\n  \"stageName\": currentInterviewStage.title,\n  \"appliedAt\": $fromMillis($toMillis(createdAt)),\n  \"createdDate\": $fromMillis($toMillis(updatedAt)),\n  \"lastUpdatedDate\": $fromMillis($toMillis(updatedAt)),\n  \"insertedAt\": $now(),\n  \"updatedAt\": $now(),\n  \"customFields\": {\n    \"stageType\": currentInterviewStage.type,\n    \"orderInInterviewPlan\": currentInterviewStage.orderInInterviewPlan,\n    \"interviewStageGroupId\": currentInterviewStage.interviewStageGroupId,\n    \"interviewPlanId\": currentInterviewStage.interviewPlanId,\n    \"applicationStatus\": status,\n    \"candidateName\": candidate.name,\n    \"email\": candidate.primaryEmailAddress != null ? candidate.primaryEmailAddress.value : null,\n    \"candidatePhone\": candidate.primaryPhoneNumber != null ? candidate.primaryPhoneNumber.value : null,\n    \"jobTitle\": job.title,\n    \"jobLocationId\": job.locationId,\n    \"jobDepartmentId\": job.departmentId,\n    \"jobBrandId\": job.brandId,\n    \"sourceTitle\": source != null ? source.title : null,\n    \"sourceType\": source != null and source.sourceType != null ? source.sourceType.title : null,\n    \"sourceId\": source != null ? source.id : null,\n    \"archiveReason\": archiveReason,\n    \"creditedToUser\": creditedToUser,\n    \"hiringTeam\": hiringTeam != null ? [$map(hiringTeam, function($member) { {\n      \"userId\": $member.userId,\n      \"firstName\": $member.firstName,\n      \"lastName\": $member.lastName,\n      \"email\": $member.email,\n      \"role\": $member.role\n    }})] : [],\n    \"appliedViaJobPostingId\": appliedViaJobPostingId,\n    \"submitterClientIp\": submitterClientIp,\n    \"submitterUserAgent\": submitterUserAgent,\n    \"customFields\": customFields != null ? [$map(customFields, function($field) { {\n      \"id\": $field.id,\n      \"title\": $field.title,\n      \"value\": $field.value\n    }})] : []\n  }\n}",
+          "targetFields": [
+            "JOVEO_APPLICATION_STAGE_ID",
+            "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+            "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+            "ATS_APPLICATION_STAGE_JOB_ID",
+            "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+            "ATS_APPLICATION_STAGE_APPLICATION_ID",
+            "ATS_APPLICATION_STAGE_ID",
+            "ATS_APPLICATION_STAGE_NAME",
+            "ATS_APPLICATION_APPLIED_DATE",
+            "ATS_APPLICATION_STAGE_CREATED_DATE",
+            "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+            "ATS_APPLICATION_STAGE_INSERTED_AT",
+            "ATS_APPLICATION_STAGE_UPDATED_AT",
+            "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+            "ATS_APPLICATION_STAGE_AUDIT"
+          ],
+          "targetOperation": "UPSERT"
+        },
+        "integrationDependency": null,
+        "failSilently": false
+      }
+    ]
+  }
+]

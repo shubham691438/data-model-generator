@@ -1,0 +1,290 @@
+# ATS Integration Testing & Validation
+
+## Pre-Implementation Testing Checklist
+- [ ] Test API endpoint with curl before implementation
+- [ ] Verify authentication works with real credentials
+- [ ] Test JSONata expressions on try.jsonata.org
+- [ ] Validate target field compatibility
+- [ ] Test pagination and date ranges
+- [ ] Verify date parsing patterns
+- [ ] Test error handling scenarios
+- [ ] Check integration dependencies
+- [ ] Validate looping patterns
+- [ ] Test UUID generation
+
+## Common Testing Commands
+
+### Test OAuth2 Token Generation
+```bash
+curl --location 'https://api.ats.com/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id={{client_id}}' \
+  --data-urlencode 'client_secret={{client_secret}}' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope={{scope}}'
+```
+
+### Test Cornerstone OAuth2
+```bash
+curl --location 'https://pservjoveo.csod.com/services/api/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=1e0tjjr9qc059' \
+  --data-urlencode 'client_secret=6ad1cf461c992e64cd3f896930e43a3fd067f94efe975c56cfe6402113cab192' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope=jobrequisition:read jobapplication:create applicationworkflow:read jobapplicant:update jobapplicant:read candidateandjobapplication:create'
+```
+
+### Test API Endpoint
+```bash
+curl -X GET "https://api.ats.com/jobs" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+```
+
+### Test with Date Range
+```bash
+curl -X GET "https://api.ats.com/jobs?updated_after=2024-01-01T00:00:00Z" \
+     -H "X-API-KEY: {{api_key}}"
+```
+
+### Test with Pagination
+```bash
+curl -X GET "https://api.ats.com/jobs?page=1&size=100" \
+     -H "X-API-KEY: {{api_key}}"
+```
+
+## JSONata Expression Testing
+
+### Test Date Parsing Patterns
+```jsonata
+// Test robust date parsing
+$date != null and $date != "" and $date != "Incomplete" and $count($split($date, "/")) = 3 and $split($date, "/")[1] != "" and $split($date, "/")[2] != "" and $split($date, "/")[3] != "" and $number($split($date, "/")[1]) > 0 and $number($split($date, "/")[1]) <= 12 and $number($split($date, "/")[2]) > 0 and $number($split($date, "/")[2]) <= 31 and $number($split($date, "/")[3]) > 1900 ? $fromMillis($toMillis($split($date, "/")[3] & "-" & ($number($split($date, "/")[1]) < 10 ? "0" & $split($date, "/")[1] : $split($date, "/")[1]) & "-" & ($number($split($date, "/")[2]) < 10 ? "0" & $split($date, "/")[2] : $split($date, "/")[2]) & "T00:00:00Z")) : null
+```
+
+### Test UUID Generation
+```jsonata
+// Test UUID generation
+$uuid()
+```
+
+### Test Array Mapping
+```jsonata
+// Test array mapping with validation
+$map($$, function($item) {
+  {
+    "atsJobId": $item.id,
+    "title": $item.title,
+    "status": $item.status = 'active' ? 'OPEN' : 'CLOSED'
+  }
+})
+```
+
+### Test Conditional Processing
+```jsonata
+// Test conditional data processing
+$count($$) > 0 ? [$] : null
+```
+
+## Validation Checklist
+
+### Authentication Validation
+- [ ] API key format is correct
+- [ ] OAuth2 token generation works
+- [ ] Headers are properly configured
+- [ ] Content-Type is set correctly
+- [ ] Authorization header format is valid
+
+### Data Model Validation
+- [ ] Target fields match supported enum values
+- [ ] JSONata expressions produce valid output
+- [ ] Required fields are mapped correctly
+- [ ] Custom fields are stored in customFields
+- [ ] UUID fields use $uuid() generation
+
+### Integration Validation
+- [ ] Integration dependencies are configured correctly
+- [ ] Looping patterns work as expected
+- [ ] Demo integrations are set up properly
+- [ ] Error handling is implemented
+- [ ] Pagination works correctly
+
+### Date Validation
+- [ ] Date parsing handles various formats
+- [ ] Timezone offsets are removed
+- [ ] Invalid dates are handled gracefully
+- [ ] Date ranges work correctly
+
+### Array/Object Validation
+- [ ] Arrays are properly wrapped in []
+- [ ] Objects are correctly structured
+- [ ] Null values are handled
+- [ ] Empty arrays are handled
+
+## Testing Scenarios
+
+### Job Integration Testing
+```bash
+# Test job endpoint
+curl -X GET "https://api.ats.com/jobs" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+
+# Test job with date range
+curl -X GET "https://api.ats.com/jobs?lastModifiedSince=2024-01-01T00:00:00Z" \
+     -H "X-API-KEY: {{api_key}}"
+```
+
+### Candidate Integration Testing
+```bash
+# Test candidate endpoint
+curl -X GET "https://api.ats.com/candidates" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+```
+
+### Application Integration Testing
+```bash
+# Test application endpoint
+curl -X GET "https://api.ats.com/applications" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+
+# Test application with status
+curl -X GET "https://api.ats.com/applications?status=New%20Submission" \
+     -H "X-API-KEY: {{api_key}}"
+```
+
+### Application Stage Integration Testing
+```bash
+# Test application stage endpoint
+curl -X GET "https://api.ats.com/application-stages" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+```
+
+### Job Question Integration Testing
+```bash
+# Test job question endpoint
+curl -X GET "https://api.ats.com/job-questions" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+```
+
+## Troubleshooting Common Issues
+
+### Target Field Errors
+```
+Error: Cannot deserialize value of type TargetField from String "ATS_APPLICATION_APPLIED_AT"
+```
+**Solution**: Use correct field names like `ATS_APPLICATION_APPLIED_DATE`
+
+### Authentication Errors
+```
+Error: 401 Unauthorized
+```
+**Solution**: Verify API key format and OAuth2 token generation
+
+### Pagination Issues
+```
+Error: NullPointerException: Cannot invoke String.equals(Object) because DateRangeConfig.getDateTimeFormat() is null
+```
+**Solution**: Add `dateTimeFormat` to `dateRangeConfig`
+
+### Date Format Issues
+```
+Error: Cannot deserialize value of type java.time.LocalDateTime from String "4/27/2012T00:00:00Z"
+```
+**Solution**: Use robust date parsing patterns with validation
+
+### UUID Generation Issues
+```
+Error: Cannot deserialize value of type java.util.UUID from String "3_stage"
+```
+**Solution**: Use `$uuid()` for UUID generation
+
+### Looping Pattern Issues
+```
+Error: Integration dependency not working
+```
+**Solution**: Verify dependency configuration and demo integration setup
+
+## Testing Commands Reference
+
+### OAuth2 Token Test
+```bash
+curl --location 'https://api.ats.com/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id={{client_id}}' \
+  --data-urlencode 'client_secret={{client_secret}}' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope={{scope}}'
+```
+
+### Cornerstone API Test
+```bash
+curl -X GET "https://pservjoveo.csod.com/services/api/Recruiting/JobRequisitionDetails" \
+     -H "Authorization: Bearer {{access_token}}" \
+     -H "Content-Type: application/json"
+```
+
+### Date Parsing Test
+```jsonata
+// Test with sample date
+$date := "4/27/2012";
+$date != null and $date != "" and $date != "Incomplete" and $count($split($date, "/")) = 3 and $split($date, "/")[1] != "" and $split($date, "/")[2] != "" and $split($date, "/")[3] != "" and $number($split($date, "/")[1]) > 0 and $number($split($date, "/")[1]) <= 12 and $number($split($date, "/")[2]) > 0 and $number($split($date, "/")[2]) <= 31 and $number($split($date, "/")[3]) > 1900 ? $fromMillis($toMillis($split($date, "/")[3] & "-" & ($number($split($date, "/")[1]) < 10 ? "0" & $split($date, "/")[1] : $split($date, "/")[1]) & "-" & ($number($split($date, "/")[2]) < 10 ? "0" & $split($date, "/")[2] : $split($date, "/")[2]) & "T00:00:00Z")) : null
+```
+
+### UUID Generation Test
+```jsonata
+// Test UUID generation
+$uuid()
+```
+
+### Array Mapping Test
+```jsonata
+// Test with sample data
+$ := [{"id": "123", "title": "Software Engineer", "status": "active"}];
+$map($$, function($item) {
+  {
+    "atsJobId": $item.id,
+    "title": $item.title,
+    "status": $item.status = 'active' ? 'OPEN' : 'CLOSED'
+  }
+})
+```
+
+## JSONata Testing Patterns
+
+### Basic Validation
+```jsonata
+// Test if data exists
+$exists($) and $ != null
+```
+
+### Array Validation
+```jsonata
+// Test array length
+$count($$) > 0
+```
+
+### Complex Validation
+```jsonata
+// Test multiple conditions
+$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })
+```
+
+### Date Validation
+```jsonata
+// Test date format
+$date != null and $date != "" and $date != "Incomplete" and $count($split($date, "/")) = 3
+```
+
+## Reference Examples
+- [cornerstone_data_model_integrations.json](mdc:ats_integrations/cornerstone_data_model_integrations.json) - Complete integration with comprehensive testing
+- [SAP_data_model_integrations.json](mdc:ats_integrations/SAP_data_model_integrations.json) - Complex error handling and validation
+- [pinpoint-new_data_model_integrations.json](mdc:ats_integrations/pinpoint-new_data_model_integrations.json) - Simple integration with basic testing
+- [apploi_data_model_integrations.json](mdc:ats_integrations/apploi_data_model_integrations.json) - Comprehensive testing with multiple scenarios
+
+---
+globs: *.json
+---

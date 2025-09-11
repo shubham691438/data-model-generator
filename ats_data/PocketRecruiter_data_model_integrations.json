@@ -1,0 +1,533 @@
+{
+  "status": "success",
+  "ats_name": "PocketRecruiter",
+  "data": [
+    {
+      "dataModel": "JOB",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-access-token",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/authenticate",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_FORM_URLENCODED",
+          "paginationConfig": null,
+          "requestPayload": {
+            "requestBody": {
+              "password": "${password}",
+              "username": "${username}"
+            }
+          },
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "$exists(token)"
+                }
+              ],
+              "jsonataConvertorExpression": "$"
+            }
+          ],
+          "executionEligibilityRules": []
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-job-post-label",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "{\"joveoLabels\": $merge(\n    $map(labels, function($label) {\n      { ($label.id): $label.value }\n    })\n  ),\"token\":\"${token}\"}"
+          },
+          "dataModelRules": [
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": {
+            "dependentIntegrationId": "pr-get-access-token",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "token",
+                "jsonataExpression": "token",
+                "restApiIntegrationContext": "API_HEADER"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "token",
+                "jsonataExpression": "token",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "NO_AUTH"
+          ],
+          "apiPath": "/jobpostlabels",
+          "headers": {
+            "x-access-token": "${token}"
+          },
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "$exists(labels)"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"joveoLabels\": $merge(\n    $map(labels, function($label) {\n      { ($label.id): $label.value }\n    })\n  ),\"token\":\"${token}\"}"
+            }
+          ],
+          "executionEligibilityRules": []
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-job-post",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "jobposts",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.jobCode) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.links[0].jobTitle) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.links[0].status) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.links[0].employmentType) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.location) }), function($acc, $v) { $acc and $v })"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "[$filter(\n  $map($$,\n  function($entities) {\n    {\n      \"atsJobId\": $entities.id,\n      \"refNumber\": $entities.id,\n      \"description\": $entities.requirements,\n      \"url\": $exists($entities.links[type=\"application\"])?$entities.links[type=\"application\"].url:null,\n      \"title\": $entities.jobTitle,\n      \"status\": $exists($entities.postings[0].active)\n        ? ($entities.postings[0].active = true ? \"OPEN\" : \"CLOSED\")\n        : \"DRAFTED\",\n      \"remoteType\": $entities.remote,\n      \"department\": $entities.departmentName,\n      \"company\": $entities.company.name,\n      \"locations\": [{\n        \"city\": $entities.location.city,\n        \"state\": $entities.location.state,\n        \"country\": $entities.location.country,\n        \"postalCode\": $entities.location.postalCode,\n        \"isPrimary\": true\n      }],\n      \"insertedAt\": $now(),\n      \"updatedAt\": $now(),\n      \"createdDate\": $fromMillis($entities.createdDate),\n      \"lastUpdatedDate\": $fromMillis($entities.lastUpdatedDate),\n      \"customFields\": {\n        \"compensation\": $entities.rateType & \" \" & \n          ($exists($entities.rate.min) ? (\" \" & $entities.rate.min & \" \" & $entities.currency) : \" \") & \n          ($exists($entities.rate.max) ? (\" - \" & $entities.rate.max & \" \" & $entities.currency & \" \") : \"\"),\n        \"labels\": $entities.labels!=null?$map($entities.labels, function($label) {\n          $lookup(${joveoLabels}, $label._id)\n        }):[]\n      }\n    }\n  }\n),\n  function($entity) {\n    $count($entity.customFields.labels) > 0\n  }\n)]",
+            "targetFields": [
+              "JOVEO_JOB_ID",
+              "JOVEO_JOB_CUSTOMER_ID",
+              "ATS_JOB_ID",
+              "ATS_JOB_REF_NUMBER",
+              "ATS_JOB_URL",
+              "ATS_JOB_TITLE",
+              "ATS_JOB_DESCRIPTION",
+              "ATS_JOB_COMPANY",
+              "ATS_JOB_REMOTE_TYPE",
+              "ATS_JOB_DEPARTMENT",
+              "ATS_JOB_STATUS",
+              "ATS_JOB_LOCATIONS",
+              "ATS_JOB_INSERTED_AT",
+              "ATS_JOB_UPDATED_AT",
+              "ATS_JOB_CREATED_DATE",
+              "ATS_JOB_LAST_UPDATED_DATE",
+              "ATS_JOB_CUSTOM_FIELDS",
+              "ATS_JOB_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "pr-get-job-post-label",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "joveoLabels",
+                "jsonataExpression": "joveoLabels",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "token",
+                "jsonataExpression": "token",
+                "restApiIntegrationContext": "API_HEADER"
+              }
+            ],
+            "jsonDataType": "OBJECT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "NO_AUTH"
+          ],
+          "apiPath": "/jobpost",
+          "headers": {
+            "x-access-token": "${token}"
+          },
+          "queryParams": {
+            "lastUpdated": "${startDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "PageConfig",
+            "limitKey": "size",
+            "limitValue": 300,
+            "pageValue": 1,
+            "pageKey": "page"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "EPOCH_MILLISECOND"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    },
+    {
+      "dataModel": "APPLICATION",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-access-token",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/authenticate",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_FORM_URLENCODED",
+          "paginationConfig": null,
+          "requestPayload": {
+            "requestBody": {
+              "password": "${password}",
+              "username": "${username}"
+            }
+          },
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "$exists(token)"
+                }
+              ],
+              "jsonataConvertorExpression": "$"
+            }
+          ],
+          "executionEligibilityRules": []
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-applications",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "matches",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.jobpost.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.candidate.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.status) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.createdDate) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.lastUpdatedDate) }), function($acc, $v) { $acc and $v })"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "[$map($$,function($entities){\n    {\n        \"atsApplicationId\": $entities.id,\n        \"atsJobId\": $entities.jobpost.id,\n    \"atsCandidateId\": $entities.candidate.id,\n    \"status\": $entities.status!=null?$entities.status:\"NO_STATUS\",\n    \"source\": $entities.source,\n    \"customFields\":,{\"applicationLinks\": $entities.applicationLinks,\"atsStatus\":$entities.atsStatus, \"applicationSource\":$entities.applicationSource, \"applicationTimestamp\":$entities.applicationTimestamp },\"createdDate\": $fromMillis($entities.createdDate),\n    \"lastUpdatedDate\": $fromMillis($entities.lastUpdatedDate),\n    \"insertedAt\": $now(),\n    \"updatedAt\": $now()}})]",
+            "targetFields": [
+              "JOVEO_APPLICATION_ID",
+              "JOVEO_APPLICATION_CUSTOMER_ID",
+              "JOVEO_APPLICATION_JOB_ID",
+              "JOVEO_APPLICATION_CANDIDATE_ID",
+              "ATS_APPLICATION_ID",
+              "ATS_APPLICATION_JOB_ID",
+              "ATS_APPLICATION_CANDIDATE_ID",
+              "ATS_APPLICATION_STATUS",
+              "ATS_APPLICATION_SOURCE",
+              "ATS_APPLICATION_ANSWERS",
+              "ATS_APPLICATION_CREATED_DATE",
+              "ATS_APPLICATION_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_INSERTED_AT",
+              "ATS_APPLICATION_UPDATED_AT",
+              "ATS_APPLICATION_TAGS",
+              "ATS_APPLICATION_CUSTOM_FIELDS",
+              "ATS_APPLICATION_IS_DELETED",
+              "ATS_APPLICATION_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "pr-get-access-token",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "token",
+                "jsonataExpression": "token",
+                "restApiIntegrationContext": "API_HEADER"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "NO_AUTH"
+          ],
+          "apiPath": "/matches",
+          "headers": {
+            "x-access-token": "${token}"
+          },
+          "queryParams": {
+            "lastUpdated": "${startDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "PageConfig",
+            "limitKey": "size",
+            "limitValue": 300,
+            "pageValue": 1,
+            "pageKey": "page"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "EPOCH_MILLISECOND"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    },
+    {
+      "dataModel": "CANDIDATE",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-access-token",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/authenticate",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_FORM_URLENCODED",
+          "paginationConfig": null,
+          "requestPayload": {
+            "requestBody": {
+              "password": "${password}",
+              "username": "${username}"
+            }
+          },
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "$exists(token)"
+                }
+              ],
+              "jsonataConvertorExpression": "$"
+            }
+          ],
+          "executionEligibilityRules": []
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "pr-get-candidates",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "matches",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.jobpost.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.candidate.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.status) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.createdDate) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "NotEmptyRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.lastUpdatedDate) }), function($acc, $v) { $acc and $v })"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "[$map($$,function($entities){\n    {\n        \"firstName\": $entities.name.firstName,\n        \"lastName\": $entities.name.lastName,\n        \"email\":$entities.email,\n        \"canEmail\":true,\n        \"address\":{\n            \"city\": $entities.address.city,\n        \"state\": $entities.address.state,\n        \"country\": $entities.address.country,\n        \"postalCode\": $entities.address.postalCode,\n        \"isPrimary\":true\n        },\n        \"links\":$entities.links,\n\n    \"atsCandidateId\": $entities.id,\n    \"createdDate\": $fromMillis($entities.createdDate),\n    \"lastUpdatedDate\": $fromMillis($entities.lastUpdatedDate),\n    \"insertedAt\": $now(),\n    \"updatedAt\": $now()}})]",
+            "targetFields": [
+              "JOVEO_CANDIDATE_ID",
+              "JOVEO_CANDIDATE_CUSTOMER_ID",
+              "ATS_CANDIDATE_ID",
+              "ATS_CANDIDATE_FIRST_NAME",
+              "ATS_CANDIDATE_LAST_NAME",
+              "ATS_CANDIDATE_EMAIL",
+              "ATS_CANDIDATE_PHONE_NUMBERS",
+              "ATS_CANDIDATE_CAN_EMAIL",
+              "ATS_CANDIDATE_LINKS",
+              "ATS_CANDIDATE_ADDRESS",
+              "ATS_CANDIDATE_WORK_EXPERIENCE",
+              "ATS_CANDIDATE_EDUCATION",
+              "ATS_CANDIDATE_CUSTOM_FIELDS",
+              "ATS_CANDIDATE_CREATED_DATE",
+              "ATS_CANDIDATE_LAST_UPDATED_DATE",
+              "ATS_CANDIDATE_INSERTED_AT",
+              "ATS_CANDIDATE_UPDATED_AT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "pr-get-access-token",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "token",
+                "jsonataExpression": "token",
+                "restApiIntegrationContext": "API_HEADER"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "NO_AUTH"
+          ],
+          "apiPath": "/candidates",
+          "headers": {
+            "x-access-token": "${token}"
+          },
+          "queryParams": {
+            "lastUpdated": "${startDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "PageConfig",
+            "limitKey": "size",
+            "limitValue": 300,
+            "pageValue": 1,
+            "pageKey": "page"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "EPOCH_MILLISECOND"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

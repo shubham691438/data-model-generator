@@ -1,0 +1,266 @@
+{
+  "status": "success",
+  "ats_name": "hoops-hr",
+  "data": [
+    {
+      "dataModel": "APPLICATION",
+      "integrationType": "WRITE_REST_API",
+      "integrations": [
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "hoops-hr-candidate-application-post-start-chain",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": true,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "https://app.hoopshr.com",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "requestPayload": {
+            "requestBody": "",
+            "requestBodyConverter": []
+          },
+          "responseHandlers": [
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because this is dummy integration to support dependency fields for next integration.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "false"
+            }
+          ]
+        },
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "hoops-hr-application-submission",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null and $exists(inputData.candidate.phoneNumber) and inputData.candidate.phoneNumber != null and $exists(inputData.candidate.customFields) and inputData.candidate.customFields != null and $exists(inputData.candidate.address) and inputData.candidate.address != null"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": {
+            "dependentIntegrationId": "hoops-hr-candidate-application-post-start-chain",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "firstName",
+                "jsonataExpression": "inputData.candidate.firstName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "lastName",
+                "jsonataExpression": "inputData.candidate.lastName",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "email",
+                "jsonataExpression": "inputData.candidate.email",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "phoneNumber",
+                "jsonataExpression": "inputData.candidate.phoneNumber",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "country",
+                "jsonataExpression": "inputData.candidate.address.country!=null?inputData.candidate.address.country:\"\"",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "city",
+                "jsonataExpression": "inputData.candidate.address.city!=null?inputData.candidate.address.city:\"\"",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "state",
+                "jsonataExpression": "inputData.candidate.customFields.province!=null?inputData.candidate.customFields.province:\"\"",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "postalCode",
+                "jsonataExpression": "inputData.candidate.customFields.postalCode",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "source",
+                "jsonataExpression": "inputData.candidate.customFields.source",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "resume",
+                "jsonataExpression": "inputData.application.attachment.attachmentContent",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "resumeContentType",
+                "jsonataExpression": "inputData.application.attachment.attachmentContentType",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "refNumber",
+                "jsonataExpression": "inputData.application.atsJobId",
+                "restApiIntegrationContext": "API_PATH"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "API_KEY"
+          ],
+          "apiPath": "https://app.hoopshr.com/rest/applicants/create/${refNumber}.json",
+          "headers": {
+            "TOKEN": "xVUhILf9LV5yE0dLo-2ts6cHFOPBu56eFkj9KoJnXD0"
+          },
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "requestPayload": {
+            "requestBody": "{\"firstName\": \"${firstName}\",\"lastName\": \"${lastName}\",\"email\":\"${email}\",\"phone\": \"${phoneNumber}\",\"city\":\"${city}\",\"province\":\"${state}\", \"country\":\"${country}\", \"postalCode\":\"${postalCode}\", \"resume\":\"${resume}\" ,\"resume_contenttype\":\"${resumeContentType}\",\"source\":\"${source}\"}",
+            "requestBodyConverter": []
+          },
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"candidateId\":uid ,\"applicationId\":application_id, \"customFields\":application}"
+            },
+            {
+              "statusCode": 406,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"No job post found matching that id\"}"
+            },
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because data might be missing.\"}"
+            }
+          ],
+          "headersInResponse": false,
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null and $exists(inputData.candidate.firstName) and inputData.candidate.firstName != null and $exists(inputData.candidate.lastName) and inputData.candidate.lastName != null and $exists(inputData.candidate.phoneNumber) and inputData.candidate.phoneNumber != null and $exists(inputData.candidate.address) and inputData.candidate.address != null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dataModel": "APPLICATION",
+      "integrationType": "WRITE_API_RESPONSE_HANDLER",
+      "integrations": [
+        {
+          "type": "WriteApiIntegration",
+          "integrationId": "hoops-hr-candidate-api-response-handler-chain",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "API_KEY"
+          ],
+          "apiPath": "https://app.hoopshr.com",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "requestPayload": {
+            "requestBody": "",
+            "requestBodyConverter": []
+          },
+          "responseHandlers": [
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "($candidateIdPost :=hoops_hr_application_submission[0].candidateId;$applicationId:=hoops_hr_application_submission[0].applicationId;$exists($candidateIdPost) ?   {    \"data\": {      \"candidateId\": $string($candidateIdPost),\"applicationId\": $string($applicationId),\"customFields\": {}},    \"errors\": null } :{    \"data\": null,    \"errors\": [{\"errorCode\":null, \"errorType\":null, \"message\":$string($), \"params\":{}}]  })"
+            }
+          ],
+          "headersInResponse": false,
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

@@ -1,0 +1,105 @@
+{
+  "status": "success",
+  "ats_name": "workday",
+  "data": [
+    {
+      "dataModel": "APPLICATION_STAGE",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "workday-raas-report",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "Report_Entry",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Reference_ID_Application_ID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Candidate_ID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Hired) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Req_ID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Job_Application_Process_Statuses_group) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $count($v.Job_Application_Process_Statuses_group) > 0 }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count([$filter([$map($$, function($v) {$v.Job_Application_Process_Statuses_group})] ~> $reduce($append) ~> $map(function($entry) { $exists($entry.Stage) and $exists($entry.Created_Moment) }), function($v) { $v=false})]) = 0"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "($startDate := \"${startDateTime}\"; $hiredResults := [$map($$[Hired = \"1\"], function($entry) {{\"atsJobId\": $entry.Req_ID, \"atsCandidateId\": $entry.Candidate_ID, \"atsApplicationId\": $entry.Reference_ID_Application_ID, \"stageId\": \"Hired\",\"stageName\": \"Hired\",\"appliedAt\": $sort($map($entry.Job_Application_Process_Statuses_group[Stage = \"Review\"], function($stage) { $fromMillis($toMillis($stage.Created_Moment)) }))[0], \"createdDate\": $sort($map($entry.Job_Application_Process_Statuses_group[Stage = \"Ready for Hire\"], function($stage) { $fromMillis($toMillis($stage.Created_Moment)) }))[0], \"lastUpdatedDate\": $sort($map($entry.Job_Application_Process_Statuses_group[Stage = \"Ready for Hire\"], function($stage) { $fromMillis($toMillis($stage.Created_Moment)) }))[0], \"insertedAt\": $now(), \"updatedAt\": $now()}})]; $allResults := $map($$, function($entry) {[$map($entry.Job_Application_Process_Statuses_group[Created_Moment >= $startDate], function($status) {{\"atsJobId\": $entry.Req_ID, \"atsCandidateId\": $entry.Candidate_ID, \"atsApplicationId\": $entry.Reference_ID_Application_ID, \"stageId\":  $join([$status.Stage, $status.Created_Moment], \"_\"), \"stageName\": $status.Stage,\"appliedAt\": $sort($map($entry.Job_Application_Process_Statuses_group[Stage = \"Review\"], function($stage) { $fromMillis($toMillis($stage.Created_Moment)) }))[0], \"createdDate\": $fromMillis($toMillis($status.Created_Moment)), \"lastUpdatedDate\": $fromMillis($toMillis($status.Created_Moment)),\"insertedAt\": $now(), \"updatedAt\": $now()}})]}) ~> $reduce($append); $allResults ~> $append($hiredResults))",
+            "targetFields": [
+              "JOVEO_APPLICATION_STAGE_ID",
+              "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+              "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+              "ATS_APPLICATION_STAGE_JOB_ID",
+              "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+              "ATS_APPLICATION_STAGE_APPLICATION_ID",
+              "ATS_APPLICATION_STAGE_ID",
+              "ATS_APPLICATION_STAGE_NAME",
+              "ATS_APPLICATION_APPLIED_DATE",
+              "ATS_APPLICATION_STAGE_CREATED_DATE",
+              "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_STAGE_INSERTED_AT",
+              "ATS_APPLICATION_STAGE_UPDATED_AT",
+              "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+              "ATS_APPLICATION_STAGE_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "",
+          "headers": {},
+          "queryParams": {
+            "Start": "${startDateTime}",
+            "format": "json",
+            "End": "${endDateTime}",
+            "Job_Requisition_Status!WID": "${Job_Requisition_Status_WID}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "ExpressionConfig",
+            "limitKey": "limit",
+            "limitValue": 10,
+            "jsonataExpressionMap": {
+              "pagination": "false"
+            },
+            "paginationIndicatorJsonataExpression": "false"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

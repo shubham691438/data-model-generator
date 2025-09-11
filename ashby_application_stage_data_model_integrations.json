@@ -1,0 +1,117 @@
+[
+    {
+      "dataModel": "APPLICATION_STAGE",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "ashby-get-application-stages",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "results"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.candidate.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.job.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.currentInterviewStage) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.currentInterviewStage.id) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.currentInterviewStage.title) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.createdAt) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($$) > 0"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "[$map($$, function($application) { {\n  \"atsApplicationId\": $application.id,\n  \"atsCandidateId\": $application.candidate.id,\n  \"atsJobId\": $application.job.id,\n  \"stageId\": $application.currentInterviewStage.id,\n  \"stageName\": $application.currentInterviewStage.title,\n  \"appliedAt\": $fromMillis($toMillis($application.createdAt)),\n  \"createdDate\": $fromMillis($toMillis($application.createdAt)),\n  \"lastUpdatedDate\": $fromMillis($toMillis($application.updatedAt)),\n  \"insertedAt\": $now(),\n  \"updatedAt\": $now(),\n  \"customFields\": {\n    \"stageType\": $application.currentInterviewStage.type,\n    \"interviewPlanId\": $application.currentInterviewStage.interviewPlanId,\n    \"orderInInterviewPlan\": $application.currentInterviewStage.orderInInterviewPlan,\n    \"interviewStageGroupId\": $application.currentInterviewStage.interviewStageGroupId,\n    \"applicationStatus\": $application.status,\n    \"sourceTitle\": $application.source != null ? $application.source.title : null,\n    \"sourceType\": $application.source != null and $application.source.sourceType != null ? $application.source.sourceType.title : null,\n    \"candidateName\": $application.candidate.name,\n    \"candidateEmail\": $application.candidate.primaryEmailAddress != null ? $application.candidate.primaryEmailAddress.value : null,\n    \"candidatePhone\": $application.candidate.primaryPhoneNumber != null ? $application.candidate.primaryPhoneNumber.value : null,\n    \"jobTitle\": $application.job.title,\n    \"jobLocationId\": $application.job.locationId,\n    \"jobDepartmentId\": $application.job.departmentId,\n    \"jobBrandId\": $application.job.brandId,\n    \"hiringTeam\": $application.hiringTeam != null ? [$map($application.hiringTeam, function($member) { {\n      \"userId\": $member.userId,\n      \"firstName\": $member.firstName,\n      \"lastName\": $member.lastName,\n      \"email\": $member.email,\n      \"role\": $member.role\n    }})] : [],\n    \"customFields\": $application.customFields != null ? $application.customFields : [],\n    \"creditedToUser\": $application.creditedToUser,\n    \"archiveReason\": $application.archiveReason,\n    \"appliedViaJobPostingId\": $application.appliedViaJobPostingId\n  }\n}})]",
+            "targetFields": [
+              "JOVEO_APPLICATION_STAGE_ID",
+              "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+              "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+              "ATS_APPLICATION_STAGE_JOB_ID",
+              "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+              "ATS_APPLICATION_STAGE_APPLICATION_ID",
+              "ATS_APPLICATION_STAGE_ID",
+              "ATS_APPLICATION_STAGE_NAME",
+              "ATS_APPLICATION_APPLIED_DATE",
+              "ATS_APPLICATION_STAGE_CREATED_DATE",
+              "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_STAGE_INSERTED_AT",
+              "ATS_APPLICATION_STAGE_UPDATED_AT",
+              "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+              "ATS_APPLICATION_STAGE_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/application.list",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "OffsetConfig",
+            "limitKey": "limit",
+            "offsetKey": "cursor",
+            "limitValue": 100,
+            "offsetJsonataExpression": "$exists(nextCursor) and nextCursor != null and nextCursor != '' ? nextCursor : ($exists(syncToken) and syncToken != null and syncToken != '' ? syncToken : null)"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "updatedAfter",
+            "endDateTimeKey": "updatedBefore",
+            "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss'Z'"
+          },
+          "responseHandlers": [
+            {
+              "statusCode": 200,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "$exists(results) and $count(results) >= 0"
+                }
+              ],
+              "jsonataConvertorExpression": "{\n  \"results\": results,\n  \"moreDataAvailable\": moreDataAvailable,\n  \"nextCursor\": nextCursor,\n  \"syncToken\": syncToken\n}"
+            },
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{ \"errorMessage\": \"Integration not executed\" }"
+            }
+          ],
+          "executionEligibilityRules": []
+        }
+      ]
+    }
+  ]

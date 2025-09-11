@@ -1,0 +1,238 @@
+# ATS Integration Target Fields
+
+## Required Target Fields
+
+### Job Target Fields
+```json
+"targetFields": [
+  "JOVEO_JOB_ID",
+  "JOVEO_JOB_CUSTOMER_ID", 
+  "ATS_JOB_ID",
+  "ATS_JOB_REF_NUMBER",
+  "ATS_JOB_TITLE",
+  "ATS_JOB_DESCRIPTION",
+  "ATS_JOB_URL",
+  "ATS_JOB_STATUS",
+  "ATS_JOB_DEPARTMENT",
+  "ATS_JOB_COMPANY",
+  "ATS_JOB_LOCATIONS",
+  "ATS_JOB_CREATED_DATE",
+  "ATS_JOB_LAST_UPDATED_DATE",
+  "ATS_JOB_START_DATE",
+  "ATS_JOB_END_DATE",
+  "ATS_JOB_INSERTED_AT",
+  "ATS_JOB_UPDATED_AT",
+  "ATS_JOB_IS_DELETED",
+  "ATS_JOB_CUSTOM_FIELDS",
+  "ATS_JOB_AUDIT",
+  "ATS_JOB_POSITION_CATEGORY",
+  "ATS_JOB_POSITION_LEVEL",
+  "ATS_JOB_REMOTE_TYPE",
+  "ATS_JOB_RECRUITERS",
+  "ATS_JOB_HIRING_MANAGERS"
+]
+```
+
+### Candidate Target Fields
+```json
+"targetFields": [
+  "JOVEO_CANDIDATE_ID",
+  "JOVEO_CANDIDATE_CUSTOMER_ID",
+  "ATS_CANDIDATE_ID",
+  "ATS_CANDIDATE_FIRST_NAME",
+  "ATS_CANDIDATE_LAST_NAME",
+  "ATS_CANDIDATE_EMAIL",
+  "ATS_CANDIDATE_PHONE_NUMBERS",
+  "ATS_CANDIDATE_ADDRESS",
+  "ATS_CANDIDATE_CREATED_DATE",
+  "ATS_CANDIDATE_LAST_UPDATED_DATE",
+  "ATS_CANDIDATE_INSERTED_AT",
+  "ATS_CANDIDATE_UPDATED_AT",
+  "ATS_CANDIDATE_IS_DELETED",
+  "ATS_CANDIDATE_CUSTOM_FIELDS",
+  "ATS_CANDIDATE_AUDIT"
+]
+```
+
+### Application Target Fields
+```json
+"targetFields": [
+  "JOVEO_APPLICATION_ID",
+  "JOVEO_APPLICATION_CUSTOMER_ID",
+  "ATS_APPLICATION_ID",
+  "ATS_APPLICATION_CANDIDATE_ID",
+  "ATS_APPLICATION_JOB_ID",
+  "ATS_APPLICATION_STATUS",
+  "ATS_APPLICATION_APPLIED_DATE",
+  "ATS_APPLICATION_CREATED_DATE",
+  "ATS_APPLICATION_LAST_UPDATED_DATE",
+  "ATS_APPLICATION_INSERTED_AT",
+  "ATS_APPLICATION_UPDATED_AT",
+  "ATS_APPLICATION_IS_DELETED",
+  "ATS_APPLICATION_CUSTOM_FIELDS",
+  "ATS_APPLICATION_AUDIT",
+  "ATS_APPLICATION_SOURCE",
+  "ATS_APPLICATION_ANSWERS",
+  "ATS_APPLICATION_TAGS"
+]
+```
+
+### Application Stage Target Fields
+```json
+"targetFields": [
+  "JOVEO_APPLICATION_STAGE_ID",
+  "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+  "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+  "ATS_APPLICATION_STAGE_JOB_ID",
+  "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+  "ATS_APPLICATION_STAGE_APPLICATION_ID",
+  "ATS_APPLICATION_STAGE_ID",
+  "ATS_APPLICATION_STAGE_NAME",
+  "ATS_APPLICATION_STAGE_CREATED_DATE",
+  "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+  "ATS_APPLICATION_STAGE_INSERTED_AT",
+  "ATS_APPLICATION_STAGE_UPDATED_AT",
+  "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+  "ATS_APPLICATION_STAGE_AUDIT"
+]
+```
+
+### Job Question Target Fields
+```json
+"targetFields": [
+  "JOVEO_JOB_QUESTION_ID",
+  "JOVEO_JOB_QUESTION_CUSTOMER_ID",
+  "ATS_JOB_QUESTION_ID",
+  "ATS_JOB_QUESTION_JOB_ID",
+  "ATS_JOB_QUESTION_TYPE",
+  "ATS_JOB_QUESTION_LABEL",
+  "ATS_JOB_QUESTION_FIELD",
+  "ATS_JOB_QUESTION_INPUT_TYPE",
+  "ATS_JOB_QUESTION_IS_MULTI_VALUE",
+  "ATS_JOB_QUESTION_PROPERTIES",
+  "ATS_JOB_QUESTION_INPUT_OPTION_LIST",
+  "ATS_JOB_QUESTION_INPUT_VALIDATION",
+  "ATS_JOB_QUESTION_DEPENDENCY_CRITERIA",
+  "ATS_JOB_QUESTION_CREATED_DATE",
+  "ATS_JOB_QUESTION_LAST_UPDATED_DATE",
+  "ATS_JOB_QUESTION_INSERTED_AT",
+  "ATS_JOB_QUESTION_UPDATED_AT",
+  "ATS_JOB_QUESTION_IS_DELETED",
+  "ATS_JOB_QUESTION_CUSTOM_FIELDS",
+  "ATS_JOB_QUESTION_AUDIT"
+]
+```
+
+## Data Model Target Configuration
+```json
+"dataModelTarget": {
+  "dataModelJsonataExpression": "$map($$, function($item) { ... })",
+  "targetFields": ["JOVEO_JOB_ID", "ATS_JOB_ID", ...],
+  "targetOperation": "UPSERT"
+}
+```
+
+## Common Field Mappings
+
+### Job Field Mappings
+- `atsJobId` → `ATS_JOB_ID`
+- `refNumber` → `ATS_JOB_REF_NUMBER`
+- `title` → `ATS_JOB_TITLE`
+- `description` → `ATS_JOB_DESCRIPTION`
+- `url` → `ATS_JOB_URL`
+- `status` → `ATS_JOB_STATUS`
+- `createdDate` → `ATS_JOB_CREATED_DATE`
+- `lastUpdatedDate` → `ATS_JOB_LAST_UPDATED_DATE`
+- `startDate` → `ATS_JOB_START_DATE`
+- `endDate` → `ATS_JOB_END_DATE`
+- `insertedAt` → `ATS_JOB_INSERTED_AT`
+- `updatedAt` → `ATS_JOB_UPDATED_AT`
+- `isDeleted` → `ATS_JOB_IS_DELETED`
+- `customFields` → `ATS_JOB_CUSTOM_FIELDS`
+- `positionCategory` → `ATS_JOB_POSITION_CATEGORY`
+- `positionLevel` → `ATS_JOB_POSITION_LEVEL`
+- `remoteType` → `ATS_JOB_REMOTE_TYPE`
+- `recruiters` → `ATS_JOB_RECRUITERS`
+- `hiringManagers` → `ATS_JOB_HIRING_MANAGERS`
+
+### Candidate Field Mappings
+- `atsCandidateId` → `ATS_CANDIDATE_ID`
+- `firstName` → `ATS_CANDIDATE_FIRST_NAME`
+- `lastName` → `ATS_CANDIDATE_LAST_NAME`
+- `email` → `ATS_CANDIDATE_EMAIL`
+- `phoneNumbers` → `ATS_CANDIDATE_PHONE_NUMBERS`
+- `address` → `ATS_CANDIDATE_ADDRESS`
+- `createdDate` → `ATS_CANDIDATE_CREATED_DATE`
+- `lastUpdatedDate` → `ATS_CANDIDATE_LAST_UPDATED_DATE`
+- `insertedAt` → `ATS_CANDIDATE_INSERTED_AT`
+- `updatedAt` → `ATS_CANDIDATE_UPDATED_AT`
+- `isDeleted` → `ATS_CANDIDATE_IS_DELETED`
+- `customFields` → `ATS_CANDIDATE_CUSTOM_FIELDS`
+
+### Application Field Mappings
+- `atsApplicationId` → `ATS_APPLICATION_ID`
+- `atsCandidateId` → `ATS_APPLICATION_CANDIDATE_ID`
+- `atsJobId` → `ATS_APPLICATION_JOB_ID`
+- `status` → `ATS_APPLICATION_STATUS`
+- `appliedAt` → `ATS_APPLICATION_APPLIED_DATE`
+- `createdDate` → `ATS_APPLICATION_CREATED_DATE`
+- `lastUpdatedDate` → `ATS_APPLICATION_LAST_UPDATED_DATE`
+- `insertedAt` → `ATS_APPLICATION_INSERTED_AT`
+- `updatedAt` → `ATS_APPLICATION_UPDATED_AT`
+- `isDeleted` → `ATS_APPLICATION_IS_DELETED`
+- `customFields` → `ATS_APPLICATION_CUSTOM_FIELDS`
+- `source` → `ATS_APPLICATION_SOURCE`
+- `answers` → `ATS_APPLICATION_ANSWERS`
+- `tags` → `ATS_APPLICATION_TAGS`
+
+### Application Stage Field Mappings
+- `applicationStageId` → `JOVEO_APPLICATION_STAGE_ID`
+- `atsJobId` → `ATS_APPLICATION_STAGE_JOB_ID`
+- `atsCandidateId` → `ATS_APPLICATION_STAGE_CANDIDATE_ID`
+- `atsApplicationId` → `ATS_APPLICATION_STAGE_APPLICATION_ID`
+- `stageId` → `ATS_APPLICATION_STAGE_ID`
+- `stageName` → `ATS_APPLICATION_STAGE_NAME`
+- `appliedAt` → `ATS_APPLICATION_STAGE_CREATED_DATE`
+- `createdDate` → `ATS_APPLICATION_STAGE_CREATED_DATE`
+- `lastUpdatedDate` → `ATS_APPLICATION_STAGE_LAST_UPDATED_DATE`
+- `insertedAt` → `ATS_APPLICATION_STAGE_INSERTED_AT`
+- `updatedAt` → `ATS_APPLICATION_STAGE_UPDATED_AT`
+- `customFields` → `ATS_APPLICATION_STAGE_CUSTOM_FIELDS`
+
+## Important Notes
+- Always use `targetOperation: "UPSERT"` for data persistence
+- Include `insertedAt` and `updatedAt` timestamps
+- Use `customFields` for additional data storage (JSONB)
+- Never use unsupported field names to avoid enum errors
+- Use `$uuid()` for UUID generation where required
+- Match field names with Java class definitions (e.g., `applicationStageId` vs `atsApplicationStageId`)
+
+## Common Target Field Errors
+
+### Enum Value Errors
+```
+Cannot deserialize value of type com.joveo.ats_common_dtos.ats.target_field.TargetField from String "ATS_APPLICATION_APPLIED_AT": not one of the values accepted by Enum class
+```
+**Solution**: Use correct field names like `ATS_APPLICATION_APPLIED_DATE`
+
+### UUID Format Errors
+```
+Cannot deserialize value of type java.util.UUID from String "3_stage": UUID has to be represented by standard 36-char representation
+```
+**Solution**: Use `$uuid()` for UUID generation
+
+### Field Name Mismatch Errors
+```
+Unrecognized field "street" (class com.joveo.ats_common_dtos.unified_models.common.Address)
+```
+**Solution**: Use correct field names that match Java class definitions
+
+## Reference Examples
+- [cornerstone_data_model_integrations.json](mdc:ats_integrations/cornerstone_data_model_integrations.json) - Complete target field mappings for all data models
+- [SAP_data_model_integrations.json](mdc:ats_integrations/SAP_data_model_integrations.json) - Complex target field patterns with custom fields
+- [pinpoint-new_data_model_integrations.json](mdc:ats_integrations/pinpoint-new_data_model_integrations.json) - Job target fields with comprehensive mapping
+- [apploi_data_model_integrations.json](mdc:ats_integrations/apploi_data_model_integrations.json) - Application target fields with status tracking
+
+---
+globs: *.json
+---

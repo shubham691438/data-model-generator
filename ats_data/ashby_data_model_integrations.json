@@ -1,0 +1,146 @@
+{
+  "status": "success",
+  "ats_name": "ashby",
+  "data": [
+    {
+      "dataModel": "JOB",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "ashby-job-post-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(jobId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(title)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(isListed)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(externalLink)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(id)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(updatedAt)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"title\":title,\n    \"atsJobId\":jobId&'_'&id,\n    \"refNumber\":jobId&'_'&id,\n    \"url\":externalLink,\n    \"remoteType\":employmentType,\n    \"createdDate\":publishedDate,\n    \"lastUpdatedDate\":updatedAt,\n    \"startDate\":publishedDate,\n    \"endDate\":applicationDeadline.deadline,\n    \"updatedAt\":$now(),\n    \"isDeleted\":false,\n    \"insertedAt\":$now(),\n    \"customFields\":{\"jobPostingId\":id}\n}",
+            "targetFields": [
+              "JOVEO_JOB_ID",
+              "JOVEO_JOB_CUSTOMER_ID",
+              "ATS_JOB_ID",
+              "ATS_JOB_REF_NUMBER",
+              "ATS_JOB_TITLE",
+              "ATS_JOB_URL",
+              "ATS_JOB_REMOTE_TYPE",
+              "ATS_JOB_RECRUITERS",
+              "ATS_JOB_HIRING_MANAGERS",
+              "ATS_JOB_CREATED_DATE",
+              "ATS_JOB_LAST_UPDATED_DATE",
+              "ATS_JOB_START_DATE",
+              "ATS_JOB_END_DATE",
+              "ATS_JOB_INSERTED_AT",
+              "ATS_JOB_UPDATED_AT",
+              "ATS_JOB_IS_DELETED",
+              "ATS_JOB_AUDIT",
+              "ATS_JOB_CUSTOM_FIELDS"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "ashby-job-posting-api",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(success)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsJobId\":\"${jobId}\"&'_'&\"${id}\",\n    \"description\":$exists(results)?results.descriptionHtml:null,\n    \"locations\":$exists(results.address.postalAddress) ? \n    $map([results.address.postalAddress], function($address) {\n    [{\n      \"isPrimary\": true,\n      \"country\": $address.addressCountry,\n      \"state\": $address.addressRegion,\n      \"city\": $address.addressLocality\n    }]\n    }) : null,\n    \"department\":$exists(results)?results.departmentName:null,\n    \"status\":$.success?\"OPEN\":\"DELETED\",\n    \"positionCategory\":$exists(results)?results.teamName:null,\n    \"positionLevel\":$exists(results)?results.teamName:null,\n    \"company\":results.linkedData and results.linkedData.hiringOrganization?results.linkedData.hiringOrganization.name : null,\n    \"updatedAt\":$now()\n}",
+            "targetFields": [
+              "ATS_JOB_DESCRIPTION",
+              "ATS_JOB_DEPARTMENT",
+              "ATS_JOB_COMPANY",
+              "ATS_JOB_STATUS",
+              "ATS_JOB_POSITION_CATEGORY",
+              "ATS_JOB_POSITION_LEVEL",
+              "ATS_JOB_LOCATIONS",
+              "ATS_JOB_UPDATED_AT"
+            ],
+            "targetOperation": "UPDATE"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "ashby-job-post-webhook-integration",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "id",
+                "jsonataExpression": "id",
+                "restApiIntegrationContext": "API_REQUEST_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobId",
+                "jsonataExpression": "jobId",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "id",
+                "jsonataExpression": "id",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": true,
+          "method": "POST",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/jobPosting.info",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": {
+            "requestBody": {
+              "jobPostingId": "${id}"
+            }
+          },
+          "dateRangeConfig": null,
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

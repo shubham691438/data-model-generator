@@ -1,0 +1,273 @@
+# ATS Integration Error Handling
+
+## Response Handlers Structure
+
+### Success Handler (200/201)
+```json
+{
+  "statusCode": 200,
+  "bodyRules": [
+    {
+      "type": "BooleanExpressionRule",
+      "jsonataExpression": "$exists(id) and id != null"
+    }
+  ],
+  "jsonataConvertorExpression": "{ \"jobId\": id, \"status\": \"success\" }"
+}
+```
+
+### Error Handler (404)
+```json
+{
+  "statusCode": 404,
+  "bodyRules": [
+    {
+      "type": "BooleanExpressionRule",
+      "jsonataExpression": "true"
+    }
+  ],
+  "jsonataConvertorExpression": "{ \"errorMessage\": \"Resource not found\", \"errorCode\": 404 }"
+}
+```
+
+### Default Handler (0)
+```json
+{
+  "statusCode": 0,
+  "bodyRules": [
+    {
+      "type": "BooleanExpressionRule",
+      "jsonataExpression": "true"
+    }
+  ],
+  "jsonataConvertorExpression": "{ \"errorMessage\": \"Integration not executed\" }"
+}
+```
+
+### Complex Error Handler (SAP Pattern)
+```json
+{
+  "statusCode": 0,
+  "bodyRules": [
+    {
+      "type": "BooleanExpressionRule",
+      "jsonataExpression": "true"
+    }
+  ],
+  "jsonataConvertorExpression": "$exists(sap_create_application_for_new_candidate[0].errorMessage) ? ($exists(sap_create_application_for_existing_candidate[0].errorMessage) ? {\"data\": null, \"errors\": [{\"errorCode\": \"500\", \"errorType\": \"Internal error\", \"message\": \"Error while creating application on sap.\", \"params\": {\"sap_create_application_for_new_candidate_error\": $string(sap_create_application_for_new_candidate[0].errorMessages), \"sap_create_application_for_existing_candidate_error\": $string(sap_create_application_for_existing_candidate[0].errorMessages), \"error\": $string($)}}]} : {\"data\": {\"candidateId\": sap_create_application_for_existing_candidate[0].candidateId, \"applicationId\": sap_create_application_for_existing_candidate[0].applicationId, \"customFields\": {\"jobId\": sap_create_application_for_existing_candidate[0].jobId}}}) : {\"data\": {\"candidateId\": sap_create_application_for_new_candidate[0].candidateId, \"applicationId\": sap_create_application_for_new_candidate[0].applicationId, \"customFields\": {\"jobId\": sap_create_application_for_new_candidate[0].jobId}}}"
+}
+```
+
+## Common Response Handler Patterns
+
+### Application Creation
+```json
+"responseHandlers": [
+  {
+    "statusCode": 201,
+    "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(id)"}],
+    "jsonataConvertorExpression": "{ \"applicationId\": id, \"candidateId\": candidate_id }"
+  },
+  {
+    "statusCode": 422,
+    "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+    "jsonataConvertorExpression": "{ \"errorMessage\": $string($) }"
+  },
+  {
+    "statusCode": 0,
+    "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+    "jsonataConvertorExpression": "{ \"errorMessage\": \"Integration not executed\" }"
+  }
+]
+```
+
+### File Upload
+```json
+"responseHandlers": [
+  {
+    "statusCode": 201,
+    "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists(url)"}],
+    "jsonataConvertorExpression": "{ \"resumeFilename\": $string(filename), \"resumeUrl\": $string(url) }"
+  },
+  {
+    "statusCode": 0,
+    "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+    "jsonataConvertorExpression": "{ \"errorMessage\": \"File upload failed\" }"
+  }
+]
+```
+
+### Integration Dependency Error
+```json
+"responseHandlers": [
+  {
+    "statusCode": 0,
+    "bodyRules": [
+      {
+        "type": "BooleanExpressionRule",
+        "jsonataExpression": "true"
+      }
+    ],
+    "jsonataConvertorExpression": "{\"errorMessage\": \"Integration not executed because sap-get-application-stage-integration provided zero applications.\"}"
+  }
+]
+```
+
+### Conditional Error Handling
+```json
+"responseHandlers": [
+  {
+    "statusCode": 0,
+    "bodyRules": [
+      {
+        "type": "BooleanExpressionRule",
+        "jsonataExpression": "true"
+      }
+    ],
+    "jsonataConvertorExpression": "$exists($$[0].jobApplication) and $$[0].jobApplication!=null ? $$ : {}"
+  }
+]
+```
+
+## Data Model Rules (Validation)
+
+### Required Field Validation
+```json
+"dataModelRules": [
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.candidate.firstName) and inputData.candidate.firstName != null"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.candidate.lastName) and inputData.candidate.lastName != null"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.candidate.email) and inputData.candidate.email != null"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.application.atsJobId) and inputData.application.atsJobId != null"
+  }
+]
+```
+
+### Array Validation
+```json
+"dataModelRules": [
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$count($$) > 0"
+  }
+]
+```
+
+### Complex Validation (SAP Pattern)
+```json
+"dataModelRules": [
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.RequisitionId) }), function($acc, $v) { $acc and $v })"
+  }
+]
+```
+
+## Execution Eligibility Rules
+```json
+"executionEligibilityRules": [
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.application.atsJobId)"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$count($$) > 0"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "true"
+  }
+]
+```
+
+## Fail Silently Configuration
+```json
+"failSilently": false  // Set to true for non-critical integrations
+```
+
+## Common Error Patterns
+
+### Authentication Errors
+- 401: Invalid API key or token
+- 403: Insufficient permissions
+- 429: Rate limit exceeded
+- 400: Bad request (invalid credentials format)
+
+### Data Validation Errors
+- 400: Bad request (missing required fields)
+- 422: Unprocessable entity (validation failed)
+- 409: Conflict (duplicate data)
+- 400: "Cannot deserialize value of type TargetField"
+
+### Date Format Errors
+- 400: "InvalidFormatException: Cannot deserialize value of type java.time.LocalDateTime"
+- 400: "The argument for the $toMillis function must be an ISO 8601 format datetime string"
+- Solution: Use robust date parsing patterns
+
+### UUID Format Errors
+- 400: "Cannot deserialize value of type java.util.UUID from String"
+- Solution: Use `$uuid()` for UUID generation
+
+### Array/Object Type Errors
+- 400: "MismatchedInputException: expecting array, getting object"
+- Solution: Wrap JSONata in `[]` for array output
+
+### Pagination Errors
+- 400: "NullPointerException: Cannot invoke String.equals(Object) because DateRangeConfig.getDateTimeFormat() is null"
+- Solution: Add `dateTimeFormat` to `dateRangeConfig`
+
+### Integration Dependency Errors
+- 400: "Cannot deserialize value of type RestApiIntegrationContext from String"
+- Solution: Use correct enum values: `API_QUERY_PARAM`, `API_HEADER`, `API_RESPONSE_BODY`, `API_REQUEST_BODY`, `API_PATH`
+
+### Server Errors
+- 500: Internal server error
+- 502: Bad gateway
+- 503: Service unavailable
+- 404: Resource not found
+
+## Error Handling Best Practices
+
+### Robust Date Parsing
+```jsonata
+// Handle various date formats and invalid dates
+$date != null and $date != "" and $date != "Incomplete" and $count($split($date, "/")) = 3 and $split($date, "/")[1] != "" and $split($date, "/")[2] != "" and $split($date, "/")[3] != "" and $number($split($date, "/")[1]) > 0 and $number($split($date, "/")[1]) <= 12 and $number($split($date, "/")[2]) > 0 and $number($split($date, "/")[2]) <= 31 and $number($split($date, "/")[3]) > 1900 ? $fromMillis($toMillis($split($date, "/")[3] & "-" & ($number($split($date, "/")[1]) < 10 ? "0" & $split($date, "/")[1] : $split($date, "/")[1]) & "-" & ($number($split($date, "/")[2]) < 10 ? "0" & $split($date, "/")[2] : $split($date, "/")[2]) & "T00:00:00Z")) : null
+```
+
+### Null-Safe Field Access
+```jsonata
+// Safe field access with defaults
+$field != null and $field != "" ? $field : "DEFAULT_VALUE"
+```
+
+### Array Validation
+```jsonata
+// Validate array exists and has content
+$exists($array) and $count($array) > 0 ? $array : []
+```
+
+### Conditional Error Messages
+```jsonata
+// Provide specific error messages based on conditions
+$condition ? "Success" : "Error: " & $errorMessage
+```
+
+## Reference Examples
+- [cornerstone_data_model_integrations.json](mdc:ats_integrations/cornerstone_data_model_integrations.json) - Comprehensive error handling with looping patterns
+- [SAP_data_model_integrations.json](mdc:ats_integrations/SAP_data_model_integrations.json) - Complex response handling and error patterns
+- [greenhouse_data_model_integrations.json](mdc:ats_integrations/greenhouse_data_model_integrations.json) - File upload error handling
+- [apploi_data_model_integrations.json](mdc:ats_integrations/apploi_data_model_integrations.json) - Validation patterns and error handling
+description:
+globs: *.json
+---

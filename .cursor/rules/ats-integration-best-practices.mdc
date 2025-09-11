@@ -1,0 +1,187 @@
+# ATS Integration Best Practices
+
+## Overview
+This rule provides comprehensive guidance for developing ATS (Applicant Tracking System) integrations based on real-world experience with Cornerstone, SAP, Pinpoint, Apploi, and other ATS platforms.
+
+## Key Integration Patterns
+
+### Authentication Patterns
+- **API_KEY**: Use for simple integrations like Pinpoint
+- **OAUTH_2**: Use for modern APIs like Cornerstone with Bearer tokens
+- **SECURED_OAUTH2**: Use for SAP-specific implementations
+- **BASIC**: Use for legacy systems like Apploi
+- Always use template variables: `{{api_key}}`, `{{access_token}}`, `{{client_id}}`, `{{client_secret}}`
+
+### Data Model Support
+- **JOB**: Job postings with locations, departments, recruiters, hiring managers
+- **CANDIDATE**: Candidate profiles with addresses, phone numbers, contact info
+- **APPLICATION**: Job applications with status tracking and applied dates
+- **APPLICATION_STAGE**: Application workflow stages with audit trails
+- **JOB_QUESTION**: Job-specific questions, forms, and screening questions
+
+### Integration Types
+- **REST_API**: Read operations from ATS (GET requests)
+- **WRITE_REST_API**: Write operations to ATS (POST/PUT/PATCH)
+- **REST_API_RESPONSE_HANDLER**: Response processing for complex workflows
+- **WRITE_API_RESPONSE_HANDLER**: Write operation response handling
+
+## Critical JSONata Patterns
+
+### Robust Date Parsing (MM/dd/yyyy to ISO)
+```jsonata
+$date != null and $date != "" and $date != "Incomplete" and $count($split($date, "/")) = 3 and $split($date, "/")[1] != "" and $split($date, "/")[2] != "" and $split($date, "/")[3] != "" and $number($split($date, "/")[1]) > 0 and $number($split($date, "/")[1]) <= 12 and $number($split($date, "/")[2]) > 0 and $number($split($date, "/")[2]) <= 31 and $number($split($date, "/")[3]) > 1900 ? $fromMillis($toMillis($split($date, "/")[3] & "-" & ($number($split($date, "/")[1]) < 10 ? "0" & $split($date, "/")[1] : $split($date, "/")[1]) & "-" & ($number($split($date, "/")[2]) < 10 ? "0" & $split($date, "/")[2] : $split($date, "/")[2]) & "T00:00:00Z")) : null
+```
+
+### UUID Generation
+```jsonata
+$uuid()  // Use for required UUID fields like applicationStageId
+```
+
+### Timezone Offset Removal
+```jsonata
+$replace($date, /\\+\\d{2}:\\d{2}$/, "")
+```
+
+### Array Mapping with Validation
+```jsonata
+$map($$, function($item) {
+  {
+    "atsJobId": $item.id,
+    "title": $item.title,
+    "status": $item.status = 'active' ? 'OPEN' : 'CLOSED'
+  }
+})
+```
+
+## Common Error Patterns & Solutions
+
+### Target Field Errors
+- **Error**: "Cannot deserialize value of type TargetField"
+- **Solution**: Use correct field names like `ATS_APPLICATION_APPLIED_DATE` instead of `ATS_APPLICATION_APPLIED_AT`
+
+### UUID Format Errors
+- **Error**: "Cannot deserialize value of type java.util.UUID from String"
+- **Solution**: Use `$uuid()` for UUID generation
+
+### Date Format Errors
+- **Error**: "InvalidFormatException: Cannot deserialize value of type java.time.LocalDateTime"
+- **Solution**: Use robust date parsing patterns with validation
+
+### Array/Object Type Errors
+- **Error**: "MismatchedInputException: expecting array, getting object"
+- **Solution**: Wrap JSONata in `[]` for array output
+
+### Integration Dependency Errors
+- **Error**: "Cannot deserialize value of type RestApiIntegrationContext from String"
+- **Solution**: Use correct enum values: `API_QUERY_PARAM`, `API_HEADER`, `API_RESPONSE_BODY`, `API_REQUEST_BODY`, `API_PATH`
+
+## Looping Pattern for Status Iteration
+
+### Demo Integration Pattern
+```json
+{
+  "type": "ReadApiIntegration",
+  "integrationId": "ats-get-applications-demo",
+  "responseConfig": {
+    "responseType": "SINGLE_ENTITY",
+    "jsonataExpression": "$"
+  },
+  "dataModelRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+  "dataModelTarget": null,
+  "integrationDependency": null,
+  "failSilently": true,
+  "method": "GET",
+  "authTypes": ["API_KEY"],
+  "apiPath": "/api/jobs",
+  "headers": {"X-API-KEY": "{{api_key}}", "Content-Type": "application/json"},
+  "queryParams": {"PageSize": 1},
+  "executionEligibilityRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}]
+}
+```
+
+### Integration Dependency Pattern
+```json
+{
+  "integrationDependency": {
+    "dependentIntegrationId": "ats-get-applications-demo",
+    "dependencyFields": [
+      {
+        "type": "RestApiIntegrationField",
+        "targetField": "CurrentStatus",
+        "jsonataExpression": ["New Submission", "In Review", "Phone Screening", "Interview", "Background Check", "Offer Letter", "Closed", "Hired"],
+        "restApiIntegrationContext": "API_PATH"
+      }
+    ],
+    "jsonDataType": "ARRAY_OF_PRIMITIVES",
+    "queryType": "SINGLE_ENTITY"
+  }
+}
+```
+
+## Required Target Fields by Data Model
+
+### Job Target Fields
+```json
+["JOVEO_JOB_ID", "JOVEO_JOB_CUSTOMER_ID", "ATS_JOB_ID", "ATS_JOB_REF_NUMBER", "ATS_JOB_TITLE", "ATS_JOB_DESCRIPTION", "ATS_JOB_URL", "ATS_JOB_STATUS", "ATS_JOB_DEPARTMENT", "ATS_JOB_COMPANY", "ATS_JOB_LOCATIONS", "ATS_JOB_CREATED_DATE", "ATS_JOB_LAST_UPDATED_DATE", "ATS_JOB_START_DATE", "ATS_JOB_END_DATE", "ATS_JOB_INSERTED_AT", "ATS_JOB_UPDATED_AT", "ATS_JOB_IS_DELETED", "ATS_JOB_CUSTOM_FIELDS", "ATS_JOB_AUDIT", "ATS_JOB_POSITION_CATEGORY", "ATS_JOB_POSITION_LEVEL", "ATS_JOB_REMOTE_TYPE", "ATS_JOB_RECRUITERS", "ATS_JOB_HIRING_MANAGERS"]
+```
+
+### Application Target Fields
+```json
+["JOVEO_APPLICATION_ID", "JOVEO_APPLICATION_CUSTOMER_ID", "ATS_APPLICATION_ID", "ATS_APPLICATION_CANDIDATE_ID", "ATS_APPLICATION_JOB_ID", "ATS_APPLICATION_STATUS", "ATS_APPLICATION_APPLIED_DATE", "ATS_APPLICATION_CREATED_DATE", "ATS_APPLICATION_LAST_UPDATED_DATE", "ATS_APPLICATION_INSERTED_AT", "ATS_APPLICATION_UPDATED_AT", "ATS_APPLICATION_IS_DELETED", "ATS_APPLICATION_CUSTOM_FIELDS", "ATS_APPLICATION_AUDIT", "ATS_APPLICATION_SOURCE", "ATS_APPLICATION_ANSWERS", "ATS_APPLICATION_TAGS"]
+```
+
+### Application Stage Target Fields
+```json
+["JOVEO_APPLICATION_STAGE_ID", "JOVEO_APPLICATION_STAGE_APPLICATION_ID", "JOVEO_APPLICATION_STAGE_CUSTOMER_ID", "ATS_APPLICATION_STAGE_JOB_ID", "ATS_APPLICATION_STAGE_CANDIDATE_ID", "ATS_APPLICATION_STAGE_APPLICATION_ID", "ATS_APPLICATION_STAGE_ID", "ATS_APPLICATION_STAGE_NAME", "ATS_APPLICATION_STAGE_CREATED_DATE", "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE", "ATS_APPLICATION_STAGE_INSERTED_AT", "ATS_APPLICATION_STAGE_UPDATED_AT", "ATS_APPLICATION_STAGE_CUSTOM_FIELDS", "ATS_APPLICATION_STAGE_AUDIT"]
+```
+
+## Testing Requirements
+
+### Pre-Implementation Testing
+1. Test API endpoints with curl before implementation
+2. Validate JSONata expressions on try.jsonata.org
+3. Check target field compatibility
+4. Test pagination and date ranges
+5. Verify authentication with real credentials
+6. Test error handling scenarios
+
+### Common Testing Commands
+```bash
+# Test OAuth2 token generation
+curl --location 'https://api.ats.com/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id={{client_id}}' \
+  --data-urlencode 'client_secret={{client_secret}}' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope={{scope}}'
+
+# Test API endpoint
+curl -X GET "https://api.ats.com/jobs" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+```
+
+## File Structure
+- Store all integrations in `ats_integrations/` directory
+- File naming: `{ats_name}_data_model_integrations.json`
+- Integration IDs: `{ats}-{action}-{entity}` (e.g., `cornerstone-get-applications`)
+
+## Reference Files
+- [cornerstone_data_model_integrations.json](mdc:ats_integrations/cornerstone_data_model_integrations.json) - Complete integration with looping patterns
+- [SAP_data_model_integrations.json](mdc:ats_integrations/SAP_data_model_integrations.json) - Complex response handling and question processing
+- [pinpoint-new_data_model_integrations.json](mdc:ats_integrations/pinpoint-new_data_model_integrations.json) - Simple API_KEY integration with date parsing
+- [apploi_data_model_integrations.json](mdc:ats_integrations/apploi_data_model_integrations.json) - BASIC authentication with comprehensive testing
+
+## Security Best Practices
+- Never hardcode credentials in integration files
+- Always use template variables for sensitive data
+- Include proper Content-Type and Accept headers
+- Validate input data to prevent injection attacks
+- Use appropriate scopes for OAuth2 tokens
+- Test authentication thoroughly before implementation
+
+
+---
+description:
+globs: *.json
+---

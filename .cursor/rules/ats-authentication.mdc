@@ -1,0 +1,148 @@
+# ATS Integration Authentication
+
+## Supported Auth Types
+- `["API_KEY"]` - Simple API key authentication
+- `["OAUTH_2"]` - OAuth2 authentication with Bearer token
+- `["BASIC"]` - Basic authentication
+- `["OAUTH_2", "API_KEY"]` - Combined authentication
+- `["SECURED_OAUTH2"]` - SAP-specific OAuth2 implementation
+- `["AWS Signature Version 4 (SigV4)"]` - AWS-compatible authentication
+
+## Header Configuration
+
+### API Key Authentication
+```json
+"authTypes": ["API_KEY"],
+"headers": {
+  "X-API-KEY": "{{api_key}}",
+  "Content-Type": "application/json",
+  "Accept": "application/json"
+}
+```
+
+### OAuth2 Authentication
+```json
+"authTypes": ["OAUTH_2"],
+"headers": {
+  "Authorization": "Bearer {{access_token}}",
+  "Content-Type": "application/json"
+}
+```
+
+### Basic Authentication
+```json
+"authTypes": ["BASIC"],
+"headers": {
+  "Authorization": "Basic {{base64_credentials}}",
+  "Content-Type": "application/json"
+}
+```
+
+### Combined Authentication
+```json
+"authTypes": ["OAUTH_2", "API_KEY"],
+"headers": {
+  "Authorization": "Bearer {{access_token}}",
+  "X-API-KEY": "{{api_key}}",
+  "Content-Type": "application/json"
+}
+```
+
+### SAP OAuth2 Authentication
+```json
+"authTypes": ["SECURED_OAUTH2"],
+"headers": {
+  "Authorization": "Bearer {{access_token}}",
+  "Content-Type": "application/json",
+  "AIR": "saptest0"
+}
+```
+
+### AWS SigV4 Authentication
+```json
+"authTypes": ["AWS Signature Version 4 (SigV4)"],
+"headers": {
+  "Content-Type": "application/json",
+  "X-Amz-Date": "{{amz_date}}",
+  "Authorization": "{{aws_auth_header}}"
+}
+```
+
+## OAuth2 Token Generation
+
+### Client Credentials Flow
+```bash
+curl --location 'https://api.ats.com/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id={{client_id}}' \
+  --data-urlencode 'client_secret={{client_secret}}' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope={{scope}}'
+```
+
+### Cornerstone OAuth2 Example
+```bash
+curl --location 'https://pservjoveo.csod.com/services/api/oauth2/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=1e0tjjr9qc059' \
+  --data-urlencode 'client_secret=6ad1cf461c992e64cd3f896930e43a3fd067f94efe975c56cfe6402113cab192' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'scope=jobrequisition:read jobapplication:create applicationworkflow:read jobapplicant:update jobapplicant:read candidateandjobapplication:create'
+```
+
+## Security Rules
+- Never hardcode credentials in integration files
+- Always use template variables: `{{api_key}}`, `{{access_token}}`, `{{client_id}}`, `{{client_secret}}`
+- Include proper Content-Type and Accept headers
+- Validate input data to prevent injection attacks
+- Use appropriate scopes for OAuth2 tokens
+- Test authentication with curl before implementation
+
+## Common Authentication Patterns
+
+### Pinpoint (API_KEY)
+```json
+"authTypes": ["API_KEY"],
+"headers": {
+  "X-API-KEY": "{{api_key}}",
+  "Content-Type": "application/json"
+}
+```
+
+### Cornerstone (OAUTH_2)
+```json
+"authTypes": ["OAUTH_2"],
+"headers": {
+  "Authorization": "Bearer {{access_token}}",
+  "Content-Type": "application/json"
+}
+```
+
+### SAP (SECURED_OAUTH2)
+```json
+"authTypes": ["SECURED_OAUTH2"],
+"headers": {
+  "Authorization": "Bearer {{access_token}}",
+  "Content-Type": "application/json",
+  "AIR": "saptest0"
+}
+```
+
+### Apploi (BASIC)
+```json
+"authTypes": ["BASIC"],
+"headers": {
+  "Authorization": "Basic {{base64_credentials}}",
+  "Content-Type": "application/json"
+}
+```
+
+## Reference Examples
+- [pinpoint-new_data_model_integrations.json](mdc:ats_integrations/pinpoint-new_data_model_integrations.json) - API_KEY authentication
+- [cornerstone_data_model_integrations.json](mdc:ats_integrations/cornerstone_data_model_integrations.json) - OAUTH_2 authentication
+- [SAP_data_model_integrations.json](mdc:ats_integrations/SAP_data_model_integrations.json) - SECURED_OAUTH2 authentication
+- [apploi_data_model_integrations.json](mdc:ats_integrations/apploi_data_model_integrations.json) - BASIC authentication
+
+---
+globs: *.json
+---

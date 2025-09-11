@@ -1,0 +1,103 @@
+{
+  "status": "success",
+  "ats_name": "workday-jet",
+  "data": [
+    {
+      "dataModel": "APPLICATION_STAGE",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "workday-jet-raas-report",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": "($exists(Report_Entry) and Report_Entry!=null)?Report_Entry:[]",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.referenceID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Candidate_ID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Hired) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.CF_LRV_Job_Req_ID) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $exists($v.Job_Application_Process_Statuses_group) }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$reduce($map($$, function($v) { $count($v.Job_Application_Process_Statuses_group) > 0 }), function($acc, $v) { $acc and $v })"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count([$filter([$map($$, function($v) {$v.Job_Application_Process_Statuses_group})] ~> $reduce($append) ~> $map(function($entry) { $exists($entry.Stage) and $exists($entry.Created_Moment) }),function($v) { $v=false})]) = 0"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "(\n    $applicationStages:= function($reports) {\n        [$map($reports,function($ReportEntity){\n       [$map($ReportEntity.Job_Application_Process_Statuses_group,\n       function($entity){\n        {\n            \"atsJobId\": $ReportEntity.CF_LRV_Job_Req_ID,\n            \"atsCandidateId\": $ReportEntity.Candidate_ID,\n            \"atsApplicationId\": $ReportEntity.referenceID,\n            \"stageId\": $join([$entity.Stage, $entity.Created_Moment], \"_\"),\n            \"stageName\": $entity.Stage,\n            \"createdDate\": $fromMillis($toMillis($entity.Created_Moment)),\n            \"lastUpdatedDate\": $fromMillis($toMillis($entity.Created_Moment)),\n            \"insertedAt\": $now(),\n            \"updatedAt\": $now()\n         }})]})]~> $reduce($append)\n    };\n\n    $fetchLastStageCreatedMoment := function($stages) {\n         $stages=null or $count($stages)=0?$now():$stages[$count($stages) - 1].Created_Moment\n    };\n\n    $hireStagesTFlag:=function($reports){\n        [$map($reports[Hired = '1'], function($ReportEntity){\n        {\n            \"atsJobId\": $ReportEntity.CF_LRV_Job_Req_ID,\n            \"atsCandidateId\": $ReportEntity.Candidate_ID,\n            \"atsApplicationId\": $ReportEntity.referenceID,\n            \"stageId\": $join(['Hire', $fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group)], \"_\"),\n            \"stageName\": 'Hire',\n            \"createdDate\": $fromMillis($toMillis($fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group))),\n            \"lastUpdatedDate\": $fromMillis($toMillis($fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group))),\n            \"insertedAt\": $now(),\n            \"updatedAt\": $now()\n        }\n        })]};\n\n    $hireStagesTCurrentStage:=function($reports){\n        [$map($reports[Candidate_Stage= 'Hire'], function($ReportEntity){\n        {\n            \"atsJobId\": $ReportEntity.CF_LRV_Job_Req_ID,\n            \"atsCandidateId\": $ReportEntity.Candidate_ID,\n            \"atsApplicationId\": $ReportEntity.referenceID,\n            \"stageId\": $join(['Hire', $fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group)], \"_\"),\n            \"stageName\": 'Hire',\n            \"createdDate\": $fromMillis($toMillis($fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group))),\n            \"lastUpdatedDate\": $fromMillis($toMillis($fetchLastStageCreatedMoment($ReportEntity.Job_Application_Process_Statuses_group))),\n            \"insertedAt\": $now(),\n            \"updatedAt\": $now()\n        }\n        })]};\n\n    $append($applicationStages($$), $append($hireStagesTFlag($$), $hireStagesTCurrentStage($$)))\n)",
+            "targetFields": [
+              "JOVEO_APPLICATION_STAGE_ID",
+              "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+              "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+              "ATS_APPLICATION_STAGE_JOB_ID",
+              "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+              "ATS_APPLICATION_STAGE_APPLICATION_ID",
+              "ATS_APPLICATION_STAGE_ID",
+              "ATS_APPLICATION_STAGE_NAME",
+              "ATS_APPLICATION_STAGE_CREATED_DATE",
+              "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_STAGE_INSERTED_AT",
+              "ATS_APPLICATION_STAGE_UPDATED_AT",
+              "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+              "ATS_APPLICATION_STAGE_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "",
+          "headers": {},
+          "queryParams": {
+            "Start": "${startDateTime}",
+            "format": "json",
+            "End": "${endDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": {
+            "type": "ExpressionConfig",
+            "limitKey": "limit",
+            "limitValue": 10,
+            "jsonataExpressionMap": {
+              "pagination": "false"
+            },
+            "paginationIndicatorJsonataExpression": "false"
+          },
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

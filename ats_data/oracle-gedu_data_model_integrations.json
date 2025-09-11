@@ -1,0 +1,427 @@
+{
+  "status": "success",
+  "ats_name": "oracle-gedu",
+  "data": [
+    {
+      "dataModel": "JOB",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-job-posting-integration",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "$.items"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($.items)>0"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/recruitingJobRequisitions",
+          "headers": {},
+          "queryParams": {
+            "q": "RequisitionLastModifiedDate>=${startDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": []
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-job-posting-status-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "{\n    \"geduJoveo\":$.geduJoveo=\"Yes\",\n    \"geduPost\":$.geduPost,\n    \"jobObject\":$eval($string(${jobObject}))\n}"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists($.geduJoveo)"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": {
+            "dependentIntegrationId": "oracle-get-job-posting-integration",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "RequisitionNumber",
+                "jsonataExpression": "[\n    $map($,function($job){\n        $job.RequisitionNumber\n    })\n]",
+                "restApiIntegrationContext": "API_PATH"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "RequisitionId",
+                "jsonataExpression": "[\n    $map($,function($job){\n        $job.RequisitionId\n    })\n]",
+                "restApiIntegrationContext": "API_PATH"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobObject",
+                "jsonataExpression": "[$map($,function($job){\n    {\n        \"atsJobId\":$job.RequisitionId,\n        \"refNumber\":$job.RequisitionNumber,\n        \"title\":$job.Title,\n        \"status\":$job.ExternalPublishedJobStatus,\n        \"remoteType\":$job.FullTimeOrPartTime,\n        \"createdDate\":$job.CreationDate,\n        \"lastUpdatedDate\":$job.RequisitionLastModifiedDate,\n        \"startDate\":$job.ExternalPublishedJobStartDate,\n        \"endDate\":$job.ExternalPublishedJobEndDate,\n        \"isDeleted\": $job.ExternalPublishedJobStatus\n    }\n})]",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              }
+            ],
+            "jsonDataType": "ARRAY_OF_PRIMITIVES",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/recruitingJobRequisitions/${RequisitionNumber}/child/requisitionDFF/${RequisitionId}",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($)>0"
+            }
+          ]
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-job-posting-description",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "{\n    \"PrimaryLocation\":$.PrimaryLocation,\n    \"ExternalDescriptionStr\":$.ExternalDescriptionStr,\n    \"jobObject\":$eval($string(${jobObject}))\n}"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": {
+            "dependentIntegrationId": "oracle-get-job-posting-status-integration",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "RequisitionNumber",
+                "jsonataExpression": "$.jobObject.refNumber",
+                "restApiIntegrationContext": "API_PATH"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "jobObject",
+                "jsonataExpression": "{\n    \"atsJobId\": $.jobObject.atsJobId,\n    \"refNumber\": $.jobObject.refNumber,\n    \"title\": $.jobObject.title,\n    \"url\":\"https://geduglobal-iabmbn.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/\"&$.jobObject.refNumber,\n    \"status\": ($.jobObject.status=\"ORA_POSTED\" and $.geduJoveo)?\"OPEN\":\"CLOSED\",\n    \"remoteType\": $.jobObject.remoteType,\n    \"createdDate\": $fromMillis($toMillis($.jobObject.createdDate)),\n    \"lastUpdatedDate\": $fromMillis($toMillis($.jobObject.lastUpdatedDate)),\n    \"startDate\": $.jobObject.startDate!=null?$fromMillis($toMillis($.jobObject.startDate)):null,\n    \"endDate\":  $.jobObject.endDate!=null?$fromMillis($toMillis($.jobObject.endDate)):null,\n    \"updatedAt\": $now(),\n    \"insertedAt\": $now(),\n    \"isDeleted\": ($.jobObject.status=\"ORA_POSTED\" and $.geduJoveo),\n    \"customFields\":{\n        \"geduPost\":$.geduPost,\n        \"geduJoveo\":$.geduJoveo\n    }\n}",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              }
+            ],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "hcmRestApi/resources/11.13.18.05/recruitingCEJobRequisitionDetails/${RequisitionNumber}",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "{\"jobObject\":{\r\n    \"atsJobId\": $.jobObject.atsJobId,\r\n    \"refNumber\": $.jobObject.refNumber,\r\n    \"title\": $.jobObject.title,\r\n    \"url\":\"https://geduglobal-iabmbn.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/\"&$.jobObject.refNumber,\r\n    \"status\": ($.jobObject.status=\"ORA_POSTED\" and $.geduJoveo)?\"OPEN\":\"CLOSED\",\r\n    \"remoteType\": $.jobObject.remoteType,\r\n    \"createdDate\": $fromMillis($toMillis($.jobObject.createdDate)),\r\n    \"lastUpdatedDate\": $fromMillis($toMillis($.jobObject.lastUpdatedDate)),\r\n    \"startDate\": $.jobObject.startDate!=null?$fromMillis($toMillis($.jobObject.startDate)):null,\r\n    \"endDate\":  $.jobObject.endDate!=null?$fromMillis($toMillis($.jobObject.endDate)):null,\r\n    \"updatedAt\": $now(),\r\n    \"insertedAt\": $now(),\r\n    \"isDeleted\": ($.jobObject.status=\"ORA_POSTED\" and $.geduJoveo),\r\n    \"customFields\":{\r\n        \"geduPost\":$.geduPost,\r\n        \"geduJoveo\":$.geduJoveo\r\n    }}\r\n}"
+            }
+          ],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$.jobObject.status=\"ORA_POSTED\""
+            }
+          ]
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-job-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists($.jobObject)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\r\n    \"atsJobId\": $.jobObject.atsJobId,\r\n    \"refNumber\": $.jobObject.refNumber,\r\n    \"description\":$.ExternalDescriptionStr,\r\n    \"title\": $.jobObject.title,\r\n    \"locations\": [\r\n    {\r\n      \"city\": $count($split(PrimaryLocation, \",\")) = 2 ? $trim($split(PrimaryLocation, \",\")[0]) :\r\n              $count($split(PrimaryLocation, \",\")) = 3 ? $trim($split(PrimaryLocation, \",\")[0]) :\r\n              null,\r\n      \"state\": $count($split(PrimaryLocation, \",\")) = 3 ? $trim($split(PrimaryLocation, \",\")[1]) : null,\r\n      \"country\": $count($split(PrimaryLocation, \",\")) = 1 ? $trim($split(PrimaryLocation, \",\")[0]) :\r\n                 $count($split(PrimaryLocation, \",\")) = 2 ? $trim($split(PrimaryLocation, \",\")[1]) :\r\n                 $count($split(PrimaryLocation, \",\")) = 3 ? $trim($split(PrimaryLocation, \",\")[2]) :\r\n                 null,\r\n      \"isPrimary\": true,\r\n      \"postalCode\": null\r\n    }\r\n  ],\r\n    \"url\":$.jobObject.url,\r\n    \"status\": jobObject.status,\r\n    \"remoteType\": $.jobObject.remoteType,\r\n    \"createdDate\": $.jobObject.createdDate,\r\n    \"lastUpdatedDate\":$.jobObject.lastUpdatedDate,\r\n    \"startDate\": $.jobObject.startDate,\r\n    \"endDate\":  $.jobObject.endDate,\r\n    \"updatedAt\": $.jobObject.updatedAt,\r\n    \"insertedAt\": $.jobObject.insertedAt,\r\n    \"isDeleted\": $.jobObject.isDeleted,\r\n    \"customFields\":{\r\n        \"geduPost\":$.jobObject.customFields.geduPost,\r\n        \"geduJoveo\":$.jobObject.customFields.geduJoveo,\r\n        \"PrimaryLocation\":$.PrimaryLocation\r\n    }\r\n}",
+            "targetFields": [
+              "JOVEO_JOB_ID",
+              "JOVEO_JOB_CUSTOMER_ID",
+              "ATS_JOB_ID",
+              "ATS_JOB_REF_NUMBER",
+              "ATS_JOB_TITLE",
+              "ATS_JOB_DESCRIPTION",
+              "ATS_JOB_URL",
+              "ATS_JOB_LOCATIONS",
+              "ATS_JOB_STATUS",
+              "ATS_JOB_REMOTE_TYPE",
+              "ATS_JOB_CREATED_DATE",
+              "ATS_JOB_LAST_UPDATED_DATE",
+              "ATS_JOB_START_DATE",
+              "ATS_JOB_END_DATE",
+              "ATS_JOB_INSERTED_AT",
+              "ATS_JOB_UPDATED_AT",
+              "ATS_JOB_CUSTOM_FIELDS",
+              "ATS_JOB_IS_DELETED",
+              "ATS_JOB_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "oracle-get-job-posting-description",
+            "dependencyFields": [],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/locations",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "$"
+            }
+          ],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "false"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dataModel": "APPLICATION_STAGE",
+      "integrationType": "REST_API",
+      "integrations": [
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-job-applications-integration",
+          "responseConfig": {
+            "responseType": "ARRAY_OF_ENTITIES",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "$.items"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($.items)>0"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": null,
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/recruitingJobApplications",
+          "headers": {},
+          "queryParams": {
+            "q": "LastModifiedDate>=${startDateTime}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": {
+            "startDateTimeKey": "startDateTime",
+            "endDateTimeKey": "endDateTime",
+            "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+          },
+          "responseHandlers": [],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ]
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-candidate-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": null,
+            "resPassingJsonataExpression": "{\n  \"candidateNumber\": $.items[0].CandidateNumber,\n  \"applicationStageObject\": $eval($string(${applicationStageObject}))\n}"
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($.items) > 0"
+            }
+          ],
+          "dataModelTarget": null,
+          "integrationDependency": {
+            "dependentIntegrationId": "oracle-get-job-applications-integration",
+            "dependencyFields": [
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "PersonId",
+                "jsonataExpression": "[$map($,function($application){\r\n    $application.CandidatePersonId\r\n})\r\n]",
+                "restApiIntegrationContext": "API_QUERY_PARAM"
+              },
+              {
+                "type": "RestApiIntegrationField",
+                "targetField": "applicationStageObject",
+                "jsonataExpression": "[\r\n  $map($, function($entities) {\r\n    {\r\n      \"atsApplicationId\": $entities.JobApplicationId,\r\n      \"atsJobId\": $entities.RequisitionNumber,\r\n      \"stageId\": $entities.PhaseId != null ? $entities.PhaseId : \"UNKNOWN\",\r\n      \"stageName\": $entities.PhaseName != null ? $entities.PhaseName : \"UNKNOWN\",\r\n      \"createdDate\": $entities.CreationDate != null ? $fromMillis($toMillis($entities.CreationDate)) : null,\r\n      \"lastUpdatedDate\": $entities.LastUpdateDate != null ? $fromMillis($toMillis($entities.LastUpdateDate)) : null,\r\n      \"appliedAt\": $entities.JobApplicationDate != null ? $fromMillis($toMillis($entities.JobApplicationDate)) : null,\r\n      \"insertedAt\": $now(),\r\n      \"updatedAt\": $now()\r\n    }\r\n  })\r\n]",
+                "restApiIntegrationContext": "API_RESPONSE_BODY"
+              }
+            ],
+            "jsonDataType": "ARRAY_OF_PRIMITIVES",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/recruitingCandidates",
+          "headers": {},
+          "queryParams": {
+            "finder": "findByPersonId;personId=${PersonId}"
+          },
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$count($) > 0"
+            }
+          ]
+        },
+        {
+          "type": "ReadApiIntegration",
+          "integrationId": "oracle-get-applicationStages-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\r\n    \"atsApplicationId\": $.applicationStageObject.atsApplicationId,\r\n    \"atsJobId\": $.applicationStageObject.atsJobId,\r\n    \"atsCandidateId\":$.candidateNumber,\r\n    \"stageId\": $.applicationStageObject.stageId,\r\n    \"stageName\": $.applicationStageObject.stageName,\r\n    \"createdDate\": $.applicationStageObject.createdDate,\r\n    \"lastUpdatedDate\": $.applicationStageObject.lastUpdatedDate,\r\n    \"appliedAt\": $.applicationStageObject.appliedAt,\r\n    \"insertedAt\": $now(),\r\n    \"updatedAt\": $now()\r\n}",
+            "targetFields": [
+              "JOVEO_APPLICATION_STAGE_ID",
+              "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+              "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+              "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+              "ATS_APPLICATION_STAGE_JOB_ID",
+              "ATS_APPLICATION_STAGE_APPLICATION_ID",
+              "ATS_APPLICATION_STAGE_ID",
+              "ATS_APPLICATION_STAGE_NAME",
+              "ATS_APPLICATION_APPLIED_DATE",
+              "ATS_APPLICATION_STAGE_CREATED_DATE",
+              "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_STAGE_INSERTED_AT",
+              "ATS_APPLICATION_STAGE_UPDATED_AT",
+              "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+              "ATS_APPLICATION_STAGE_AUDIT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": {
+            "dependentIntegrationId": "oracle-get-candidate-integration",
+            "dependencyFields": [],
+            "jsonDataType": "TEXT_PRIMITIVE",
+            "queryType": "SINGLE_ENTITY"
+          },
+          "failSilently": false,
+          "method": "GET",
+          "authTypes": [
+            "BASIC"
+          ],
+          "apiPath": "/hcmRestApi/resources/11.13.18.05/recruitingJobApplications",
+          "headers": {},
+          "queryParams": {},
+          "contentType": "APPLICATION_JSON",
+          "paginationConfig": null,
+          "requestPayload": null,
+          "dateRangeConfig": null,
+          "responseHandlers": [
+            {
+              "statusCode": 0,
+              "bodyRules": [
+                {
+                  "type": "BooleanExpressionRule",
+                  "jsonataExpression": "true"
+                }
+              ],
+              "jsonataConvertorExpression": "$"
+            }
+          ],
+          "executionEligibilityRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

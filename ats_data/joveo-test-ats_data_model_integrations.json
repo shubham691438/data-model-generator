@@ -1,0 +1,277 @@
+{
+  "status": "success",
+  "ats_name": "joveo-test-ats",
+  "data": [
+    {
+      "dataModel": "JOB",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "joveo-test-ats-job-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsJobId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(title)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(url)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsJobId\":atsJobId,\n    \"refNumber\":refNumber,\n    \"title\":title,\n    \"description\":description,\n    \"url\":url,\n    \"department\":department,\n    \"status\":status,\n    \"positionCategory\":positionCategory,\n    \"positionLevel\":positionLevel,\n    \"remoteType\":remoteType,\n    \"company\":company,\n    \"createdDate\":createdDate,\n    \"lastUpdatedDate\":lastUpdatedDate,\n    \"startDate\":startDate,\n    \"endDate\":endDate,\n    \"updatedAt\":$now(),\n    \"insertedAt\":$now(),\n    \"isDeleted\":status=\"OPEN\"?false:true\n}",
+            "targetFields": [
+              "JOVEO_JOB_ID",
+              "JOVEO_JOB_CUSTOMER_ID",
+              "ATS_JOB_ID",
+              "ATS_JOB_REF_NUMBER",
+              "ATS_JOB_TITLE",
+              "ATS_JOB_URL",
+              "ATS_JOB_REMOTE_TYPE",
+              "ATS_JOB_HIRING_MANAGERS",
+              "ATS_JOB_CREATED_DATE",
+              "ATS_JOB_LAST_UPDATED_DATE",
+              "ATS_JOB_START_DATE",
+              "ATS_JOB_END_DATE",
+              "ATS_JOB_INSERTED_AT",
+              "ATS_JOB_IS_DELETED",
+              "ATS_JOB_AUDIT",
+              "ATS_JOB_CUSTOM_FIELDS",
+              "ATS_JOB_DESCRIPTION",
+              "ATS_JOB_DEPARTMENT",
+              "ATS_JOB_COMPANY",
+              "ATS_JOB_STATUS",
+              "ATS_JOB_POSITION_CATEGORY",
+              "ATS_JOB_POSITION_LEVEL",
+              "ATS_JOB_LOCATIONS",
+              "ATS_JOB_UPDATED_AT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        }
+      ]
+    },
+    {
+      "dataModel": "APPLICATION_STAGE",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "joveo-test-ats-application-stage-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsJobId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsCandidateId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsApplicationId)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsJobId\": atsJobId,\n    \"atsCandidateId\": atsCandidateId,\n    \"atsApplicationId\": atsApplicationId,\n    \"stageId\": stageId,\n    \"stageName\": stageName,\n    \"appliedAt\": appliedAt,\n    \"createdDate\": createdDate,\n    \"lastUpdatedDate\": lastUpdatedDate,\n    \"insertedAt\":$now(),\n    \"updatedAt\":$now()\n}",
+            "targetFields": [
+              "JOVEO_APPLICATION_STAGE_ID",
+              "JOVEO_APPLICATION_STAGE_APPLICATION_ID",
+              "JOVEO_APPLICATION_STAGE_CUSTOMER_ID",
+              "ATS_APPLICATION_STAGE_CANDIDATE_ID",
+              "ATS_APPLICATION_STAGE_APPLICATION_ID",
+              "ATS_APPLICATION_STAGE_ID",
+              "ATS_APPLICATION_STAGE_NAME",
+              "ATS_APPLICATION_STAGE_CREATED_DATE",
+              "ATS_APPLICATION_STAGE_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_STAGE_INSERTED_AT",
+              "ATS_APPLICATION_STAGE_UPDATED_AT",
+              "ATS_APPLICATION_STAGE_CUSTOM_FIELDS",
+              "ATS_APPLICATION_STAGE_JOB_ID",
+              "ATS_APPLICATION_STAGE_AUDIT",
+              "ATS_APPLICATION_APPLIED_DATE"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        }
+      ]
+    },
+    {
+      "dataModel": "ATTACHMENT",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "joveo-test-ats-attachment-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsAttachmentId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsCandidateId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsApplicationId)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsAttachmentId\": atsAttachmentId,\n    \"atsCandidateId\": atsCandidateId,\n    \"atsApplicationId\": atsApplicationId,\n    \"link\": link,\n    \"fileName\": fileName,\n    \"fileLength\": fileLength,\n    \"contentType\": contentType,\n    \"createdDate\": createdDate,\n    \"lastUpdatedDate\": lastUpdatedDate,\n    \"insertedAt\":$now(),\n    \"updatedAt\":$now()\n}   ",
+            "targetFields": [
+              "JOVEO_ATTACHMENT_ID",
+              "JOVEO_ATTACHMENT_CANDIDATE_ID",
+              "JOVEO_ATTACHMENT_APPLICATION_ID",
+              "ATS_ATTACHMENT_ID",
+              "ATS_ATTACHMENT_CANDIDATE_ID",
+              "ATS_ATTACHMENT_APPLICATION_ID",
+              "ATS_ATTACHMENT_LINK",
+              "ATS_ATTACHMENT_FILE_NAME",
+              "ATS_ATTACHMENT_FILE_LENGTH",
+              "ATS_ATTACHMENT_CONTENT_TYPE",
+              "ATS_ATTACHMENT_CREATED_DATE",
+              "ATS_ATTACHMENT_LAST_UPDATED_DATE",
+              "ATS_ATTACHMENT_INSERTED_AT",
+              "ATS_ATTACHMENT_UPDATED_AT",
+              "ATS_ATTACHMENT_CUSTOM_FIELDS",
+              "ATS_ATTACHMENT_IS_DELETED"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        }
+      ]
+    },
+    {
+      "dataModel": "CANDIDATE",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "joveo-test-ats-candidate-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(firstName)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsCandidateId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(lastName)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsCandidateId\": atsCandidateId,\n    \"firstName\": firstName,\n    \"lastName\": lastName,\n    \"email\": email,\n    \"phoneNumbers\": phoneNumbers,\n    \"canEmail\": true,\n    \"links\": links,\n    \"address\": address,\n    \"createdDate\": createdDate,\n    \"lastUpdatedDate\":lastUpdatedDate,\n    \"insertedAt\":$now(),\n    \"updatedAt\":$now()\n}",
+            "targetFields": [
+              "JOVEO_CANDIDATE_ID",
+              "JOVEO_CANDIDATE_CUSTOMER_ID",
+              "ATS_CANDIDATE_ID",
+              "ATS_CANDIDATE_FIRST_NAME",
+              "ATS_CANDIDATE_LAST_NAME",
+              "ATS_CANDIDATE_EMAIL",
+              "ATS_CANDIDATE_PHONE_NUMBERS",
+              "ATS_CANDIDATE_CAN_EMAIL",
+              "ATS_CANDIDATE_LINKS",
+              "ATS_CANDIDATE_ADDRESS",
+              "ATS_CANDIDATE_WORK_EXPERIENCE",
+              "ATS_CANDIDATE_EDUCATION",
+              "ATS_CANDIDATE_CUSTOM_FIELDS",
+              "ATS_CANDIDATE_CREATED_DATE",
+              "ATS_CANDIDATE_LAST_UPDATED_DATE",
+              "ATS_CANDIDATE_INSERTED_AT",
+              "ATS_CANDIDATE_UPDATED_AT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        }
+      ]
+    },
+    {
+      "dataModel": "APPLICATION",
+      "integrationType": "WEBHOOK",
+      "integrations": [
+        {
+          "type": "WebhookIntegration",
+          "integrationId": "joveo-test-ats-application-webhook-integration",
+          "responseConfig": {
+            "responseType": "SINGLE_ENTITY",
+            "jsonataExpression": "$",
+            "resPassingJsonataExpression": null
+          },
+          "dataModelRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsJobId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsCandidateId)"
+            },
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists(atsApplicationId)"
+            }
+          ],
+          "dataModelTarget": {
+            "dataModelJsonataExpression": "{\n    \"atsJobId\": atsJobId,\n    \"atsCandidateId\": atsCandidateId,\n    \"atsApplicationId\": atsApplicationId,\n    \"status\": status,\n    \"source\": source,\n    \"createdDate\": createdDate,\n    \"lastUpdatedDate\": lastUpdatedDate,\n    \"insertedAt\":$now(),\n    \"updatedAt\":$now()\n}    ",
+            "targetFields": [
+              "JOVEO_APPLICATION_ID",
+              "JOVEO_APPLICATION_CUSTOMER_ID",
+              "JOVEO_APPLICATION_JOB_ID",
+              "JOVEO_APPLICATION_CANDIDATE_ID",
+              "ATS_APPLICATION_ID",
+              "ATS_APPLICATION_JOB_ID",
+              "ATS_APPLICATION_CANDIDATE_ID",
+              "ATS_APPLICATION_SOURCE",
+              "ATS_APPLICATION_STATUS",
+              "ATS_APPLICATION_CREATED_DATE",
+              "ATS_APPLICATION_LAST_UPDATED_DATE",
+              "ATS_APPLICATION_INSERTED_AT",
+              "ATS_APPLICATION_UPDATED_AT"
+            ],
+            "targetOperation": "UPSERT"
+          },
+          "integrationDependency": null,
+          "failSilently": true
+        }
+      ]
+    }
+  ],
+  "status_code": 200
+}

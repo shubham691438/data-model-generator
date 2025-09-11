@@ -1,0 +1,7 @@
+{
+  "status": "error",
+  "ats_name": "bullhorn",
+  "error": "HTTP 500",
+  "status_code": 500,
+  "response_text": "{\"errorCode\":\"business_error\",\"errorType\":\"internal_server_error\",\"message\":\"ATS is not active or not onboarded.\",\"params\":{}}"
+}
