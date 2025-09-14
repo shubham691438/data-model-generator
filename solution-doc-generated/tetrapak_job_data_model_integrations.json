@@ -1,0 +1,85 @@
+{
+  "integrations": [
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "tetrapak-get-jobs",
+      "responseConfig": {
+        "responseType": "ARRAY_OF_ENTITIES",
+        "jsonataExpression": "$.data.jobs"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$count($$) > 0"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists($.id) and $.id != null"
+        }
+      ],
+      "dataModelTarget": {
+        "dataModelJsonataExpression": "$map($$, function($job) { { \"JOVEO_JOB_ID\": $uuid(), \"JOVEO_JOB_CUSTOMER_ID\": \"{{customer_id}}\", \"ATS_JOB_ID\": $.id, \"ATS_JOB_REF_NUMBER\": $.reference_number, \"ATS_JOB_TITLE\": $.title, \"ATS_JOB_DESCRIPTION\": $.description, \"ATS_JOB_URL\": $.application_url, \"ATS_JOB_STATUS\": $.status = 'active' ? 'OPEN' : 'CLOSED', \"ATS_JOB_DEPARTMENT\": $.department, \"ATS_JOB_COMPANY\": $.company, \"ATS_JOB_LOCATIONS\": $map($.locations, function($loc) { $loc.city & \", \" & $loc.country }), \"ATS_JOB_CREATED_DATE\": $fromMillis($toMillis($replace($.created_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_LAST_UPDATED_DATE\": $fromMillis($toMillis($replace($.updated_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_START_DATE\": $fromMillis($toMillis($replace($.start_date, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_END_DATE\": $fromMillis($toMillis($replace($.application_deadline, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_INSERTED_AT\": $now(), \"ATS_JOB_UPDATED_AT\": $now(), \"ATS_JOB_IS_DELETED\": false, \"ATS_JOB_CUSTOM_FIELDS\": { \"employment_type\": $.employment_type, \"experience_level\": $.experience_level, \"remote_allowed\": $.remote_allowed, \"division\": $.division, \"business_unit\": $.business_unit }, \"ATS_JOB_AUDIT\": { \"created_by\": $.created_by, \"updated_by\": $.updated_by }, \"ATS_JOB_POSITION_CATEGORY\": $.category, \"ATS_JOB_POSITION_LEVEL\": $.experience_level, \"ATS_JOB_REMOTE_TYPE\": $.remote_allowed ? \"REMOTE\" : \"ONSITE\", \"ATS_JOB_RECRUITERS\": $map($.recruiters, function($rec) { { \"name\": $rec.name, \"email\": $rec.email } }), \"ATS_JOB_HIRING_MANAGERS\": $map($.hiring_managers, function($hm) { { \"name\": $hm.name, \"email\": $hm.email } }) } })",
+        "targetFields": [
+          "JOVEO_JOB_ID", "JOVEO_JOB_CUSTOMER_ID", "ATS_JOB_ID", "ATS_JOB_REF_NUMBER", "ATS_JOB_TITLE", "ATS_JOB_DESCRIPTION", "ATS_JOB_URL", "ATS_JOB_STATUS", "ATS_JOB_DEPARTMENT", "ATS_JOB_COMPANY", "ATS_JOB_LOCATIONS", "ATS_JOB_CREATED_DATE", "ATS_JOB_LAST_UPDATED_DATE", "ATS_JOB_START_DATE", "ATS_JOB_END_DATE", "ATS_JOB_INSERTED_AT", "ATS_JOB_UPDATED_AT", "ATS_JOB_IS_DELETED", "ATS_JOB_CUSTOM_FIELDS", "ATS_JOB_AUDIT", "ATS_JOB_POSITION_CATEGORY", "ATS_JOB_POSITION_LEVEL", "ATS_JOB_REMOTE_TYPE", "ATS_JOB_RECRUITERS", "ATS_JOB_HIRING_MANAGERS"
+        ],
+        "targetOperation": "UPSERT"
+      },
+      "method": "GET",
+      "authTypes": ["API_KEY"],
+      "apiPath": "/api/v1/jobs",
+      "headers": {
+        "X-API-KEY": "{{api_key}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "queryParams": {
+        "page": "${page}",
+        "size": "100",
+        "status": "active"
+      },
+      "paginationConfig": {
+        "type": "PageConfig",
+        "pageSize": 100,
+        "pageNumberKey": "page",
+        "hasMoreDataJsonataExpression": "$exists($.data.next_page)"
+      },
+      "dateRangeConfig": {
+        "startDateTimeKey": "lastModifiedSince",
+        "endDateTimeKey": "lastModifiedBefore",
+        "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+      }
+    },
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "tetrapak-get-job-details",
+      "responseConfig": {
+        "responseType": "SINGLE_ENTITY",
+        "jsonataExpression": "$.data"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists($.id) and $.id != null"
+        }
+      ],
+      "dataModelTarget": {
+        "dataModelJsonataExpression": "{ \"JOVEO_JOB_ID\": $uuid(), \"JOVEO_JOB_CUSTOMER_ID\": \"{{customer_id}}\", \"ATS_JOB_ID\": $.id, \"ATS_JOB_REF_NUMBER\": $.reference_number, \"ATS_JOB_TITLE\": $.title, \"ATS_JOB_DESCRIPTION\": $.description, \"ATS_JOB_URL\": $.application_url, \"ATS_JOB_STATUS\": $.status = 'active' ? 'OPEN' : 'CLOSED', \"ATS_JOB_DEPARTMENT\": $.department, \"ATS_JOB_COMPANY\": $.company, \"ATS_JOB_LOCATIONS\": $map($.locations, function($loc) { $loc.city & \", \" & $loc.country }), \"ATS_JOB_CREATED_DATE\": $fromMillis($toMillis($replace($.created_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_LAST_UPDATED_DATE\": $fromMillis($toMillis($replace($.updated_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_START_DATE\": $fromMillis($toMillis($replace($.start_date, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_END_DATE\": $fromMillis($toMillis($replace($.application_deadline, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_JOB_INSERTED_AT\": $now(), \"ATS_JOB_UPDATED_AT\": $now(), \"ATS_JOB_IS_DELETED\": false, \"ATS_JOB_CUSTOM_FIELDS\": { \"employment_type\": $.employment_type, \"experience_level\": $.experience_level, \"remote_allowed\": $.remote_allowed, \"division\": $.division, \"business_unit\": $.business_unit, \"requirements\": $.requirements, \"benefits\": $.benefits }, \"ATS_JOB_AUDIT\": { \"created_by\": $.created_by, \"updated_by\": $.updated_by }, \"ATS_JOB_POSITION_CATEGORY\": $.category, \"ATS_JOB_POSITION_LEVEL\": $.experience_level, \"ATS_JOB_REMOTE_TYPE\": $.remote_allowed ? \"REMOTE\" : \"ONSITE\", \"ATS_JOB_RECRUITERS\": $map($.recruiters, function($rec) { { \"name\": $rec.name, \"email\": $rec.email } }), \"ATS_JOB_HIRING_MANAGERS\": $map($.hiring_managers, function($hm) { { \"name\": $hm.name, \"email\": $hm.email } }) }",
+        "targetFields": [
+          "JOVEO_JOB_ID", "JOVEO_JOB_CUSTOMER_ID", "ATS_JOB_ID", "ATS_JOB_REF_NUMBER", "ATS_JOB_TITLE", "ATS_JOB_DESCRIPTION", "ATS_JOB_URL", "ATS_JOB_STATUS", "ATS_JOB_DEPARTMENT", "ATS_JOB_COMPANY", "ATS_JOB_LOCATIONS", "ATS_JOB_CREATED_DATE", "ATS_JOB_LAST_UPDATED_DATE", "ATS_JOB_START_DATE", "ATS_JOB_END_DATE", "ATS_JOB_INSERTED_AT", "ATS_JOB_UPDATED_AT", "ATS_JOB_IS_DELETED", "ATS_JOB_CUSTOM_FIELDS", "ATS_JOB_AUDIT", "ATS_JOB_POSITION_CATEGORY", "ATS_JOB_POSITION_LEVEL", "ATS_JOB_REMOTE_TYPE", "ATS_JOB_RECRUITERS", "ATS_JOB_HIRING_MANAGERS"
+        ],
+        "targetOperation": "UPSERT"
+      },
+      "method": "GET",
+      "authTypes": ["API_KEY"],
+      "apiPath": "/api/v1/jobs/{jobId}",
+      "headers": {
+        "X-API-KEY": "{{api_key}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "queryParams": {},
+      "paginationConfig": null,
+      "dateRangeConfig": null
+    }
+  ]
+}

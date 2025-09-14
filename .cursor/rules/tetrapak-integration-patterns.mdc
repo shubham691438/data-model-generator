@@ -1,0 +1,253 @@
+---
+globs: *.json
+---
+
+# Tetra Pak Integration Patterns
+
+## Overview
+This rule provides specific patterns and best practices for Tetra Pak ATS integrations, based on the Mojo Apply integration requirements and Tetra Pak's specific data models.
+
+## Tetra Pak Specific Patterns
+
+### Authentication
+- **Primary Auth:** API_KEY authentication with X-API-KEY header
+- **Secondary Auth:** OAuth 2.0 for advanced integrations
+- **Headers Required:** `X-API-KEY: {{api_key}}`, `Content-Type: application/json`, `Accept: application/json`
+
+### Data Model Specifics
+
+#### Job Data Model
+- **Company Field:** Always "Tetra Pak International S.A."
+- **Department Mapping:** Map to Tetra Pak business units (Packaging, Processing, Services)
+- **Location Format:** "City, Country" format for international locations
+- **Employment Types:** full-time, part-time, contract, internship
+- **Experience Levels:** entry, mid, senior, executive
+- **Remote Policy:** Boolean field indicating remote work allowance
+
+#### Application Data Model
+- **Status Values:** applied, under_review, shortlisted, interviewed, rejected, hired
+- **Source Field:** Always "mojo_apply" for Mojo Apply integrations
+- **Custom Fields:** work_authorization, relocation_willingness, salary_expectation
+- **Answers Array:** Job-specific questions and candidate responses
+
+#### Candidate Data Model
+- **Address Structure:** Street, City, State, Country, Postal Code
+- **Experience:** Years of experience as number
+- **Skills Array:** Array of skill strings
+- **Education Array:** Degree, Institution, Graduation Year objects
+
+### JSONata Patterns for Tetra Pak
+
+#### Date Parsing (Tetra Pak Format)
+```jsonata
+$fromMillis($toMillis($replace($.created_at, /\\+\\d{2}:\\d{2}$/, "") & "Z"))
+```
+
+#### Location Mapping
+```jsonata
+$map($.locations, function($loc) { $loc.city & ", " & $loc.country })
+```
+
+#### Custom Fields Mapping
+```jsonata
+{
+  "employment_type": $.employment_type,
+  "experience_level": $.experience_level,
+  "remote_allowed": $.remote_allowed,
+  "division": $.division,
+  "business_unit": $.business_unit
+}
+```
+
+#### Application Status Mapping
+```jsonata
+$.status = 'active' ? 'OPEN' : 'CLOSED'
+```
+
+### API Endpoint Patterns
+
+#### Job Endpoints
+- **List Jobs:** `GET /api/v1/jobs` with pagination and status filtering
+- **Job Details:** `GET /api/v1/jobs/{jobId}` for specific job information
+- **Query Params:** page, size, status, lastModifiedSince, lastModifiedBefore
+
+#### Application Endpoints
+- **Create Application:** `POST /api/v1/applications` with full candidate and job data
+- **List Applications:** `GET /api/v1/applications` with pagination and date filtering
+- **Query Params:** page, size, status, appliedSince, appliedBefore
+
+#### Candidate Endpoints
+- **Create Candidate:** `POST /api/v1/candidates` with profile data
+- **Update Candidate:** `PUT /api/v1/candidates/{candidateId}` for profile updates
+- **List Candidates:** `GET /api/v1/candidates` with pagination
+
+#### Application Stage Endpoints
+- **List Stages:** `GET /api/v1/applications/{applicationId}/stages`
+- **Update Stage:** `PUT /api/v1/applications/{applicationId}/stages/{stageId}`
+
+### Error Handling Patterns
+
+#### Standard Response Handlers
+```json
+{
+  "statusCode": 201,
+  "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "$exists($.id)"}],
+  "jsonataConvertorExpression": "{ \"applicationId\": $.id, \"status\": $.status }"
+},
+{
+  "statusCode": 400,
+  "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+  "jsonataConvertorExpression": "{ \"errorMessage\": \"Invalid data\", \"details\": $.message }"
+},
+{
+  "statusCode": 404,
+  "bodyRules": [{"type": "BooleanExpressionRule", "jsonataExpression": "true"}],
+  "jsonataConvertorExpression": "{ \"errorMessage\": \"Resource not found\", \"details\": $.message }"
+}
+```
+
+### Pagination Configuration
+```json
+"paginationConfig": {
+  "type": "PageConfig",
+  "pageSize": 100,
+  "pageNumberKey": "page",
+  "hasMoreDataJsonataExpression": "$exists($.data.next_page)"
+}
+```
+
+### Date Range Configuration
+```json
+"dateRangeConfig": {
+  "startDateTimeKey": "lastModifiedSince",
+  "endDateTimeKey": "lastModifiedBefore",
+  "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+}
+```
+
+### Integration Dependencies (Looping Pattern)
+```json
+"integrationDependency": {
+  "dependentIntegrationId": "tetrapak-get-applications-demo",
+  "dependencyFields": [
+    {
+      "type": "RestApiIntegrationField",
+      "targetField": "CurrentStatus",
+      "jsonataExpression": ["applied", "under_review", "shortlisted", "interviewed", "rejected", "hired"],
+      "restApiIntegrationContext": "API_PATH"
+    }
+  ],
+  "jsonDataType": "ARRAY_OF_PRIMITIVES",
+  "queryType": "SINGLE_ENTITY"
+}
+```
+
+### Request Payload Patterns
+
+#### Application Creation
+```json
+{
+  "job_id": "${inputData.job.id}",
+  "candidate": {
+    "first_name": "${inputData.candidate.firstName}",
+    "last_name": "${inputData.candidate.lastName}",
+    "email": "${inputData.candidate.email}",
+    "phone": "${inputData.candidate.phone}",
+    "address": {
+      "street": "${inputData.candidate.address.street}",
+      "city": "${inputData.candidate.address.city}",
+      "state": "${inputData.candidate.address.state}",
+      "country": "${inputData.candidate.address.country}",
+      "postal_code": "${inputData.candidate.address.postalCode}"
+    },
+    "experience_years": ${inputData.candidate.experienceYears},
+    "current_position": "${inputData.candidate.currentPosition}",
+    "current_company": "${inputData.candidate.currentCompany}",
+    "skills": ${inputData.candidate.skills},
+    "education": ${inputData.candidate.education}
+  },
+  "resume_url": "${inputData.resumeUrl}",
+  "cover_letter": "${inputData.coverLetter}",
+  "answers": ${inputData.answers},
+  "custom_fields": {
+    "work_authorization": "${inputData.customFields.workAuthorization}",
+    "relocation_willingness": ${inputData.customFields.relocationWillingness},
+    "salary_expectation": ${inputData.customFields.salaryExpectation}
+  },
+  "source": "mojo_apply"
+}
+```
+
+### Data Validation Rules
+
+#### Required Fields Validation
+```json
+"dataModelRules": [
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.candidate.firstName) and inputData.candidate.firstName != null"
+  },
+  {
+    "type": "BooleanExpressionRule",
+    "jsonataExpression": "$exists(inputData.job.id) and inputData.job.id != null"
+  }
+]
+```
+
+### File Upload Patterns
+```json
+"requestPayload": {
+  "requestBody": "{\"filename\":\"${fileName}\",\"content\":\"${content}\",\"content_type\":\"${contentType}\"}",
+  "requestBodyConverter": []
+}
+```
+
+### Testing Requirements
+
+#### Pre-Implementation Testing
+1. Test Tetra Pak ATS API endpoints with curl
+2. Validate JSONata expressions on try.jsonata.org
+3. Test authentication with Tetra Pak credentials
+4. Verify data mapping accuracy
+5. Test error handling scenarios
+
+#### Common Testing Commands
+```bash
+# Test API authentication
+curl -X GET "https://ats.tetrapak.com/api/v1/jobs" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json"
+
+# Test application creation
+curl -X POST "https://ats.tetrapak.com/api/v1/applications" \
+     -H "X-API-KEY: {{api_key}}" \
+     -H "Content-Type: application/json" \
+     -d '{"job_id": "123", "candidate": {...}}'
+```
+
+### Security Considerations
+- Never hardcode Tetra Pak credentials
+- Use template variables for all sensitive data
+- Validate all input data before processing
+- Implement proper error handling and logging
+- Follow Tetra Pak's data privacy requirements
+
+### Performance Optimization
+- Use appropriate page sizes (100 records per page)
+- Implement proper caching strategies
+- Monitor API rate limits
+- Use date range filtering to reduce data volume
+- Implement retry logic for failed requests
+
+### Maintenance Guidelines
+- Regular testing of API endpoints
+- Monitor for Tetra Pak ATS updates
+- Update integration when API changes
+- Maintain audit trails for all operations
+- Regular review of error logs
+
+## Reference Files
+- [tetrapak_job_data_model_integrations.json](mdc:solution-doc-generated/tetrapak_job_data_model_integrations.json)
+- [tetrapak_application_data_model_integrations.json](mdc:solution-doc-generated/tetrapak_application_data_model_integrations.json)
+- [tetrapak_candidate_data_model_integrations.json](mdc:solution-doc-generated/tetrapak_candidate_data_model_integrations.json)
+- [tetrapak_application_stage_data_model_integrations.json](mdc:solution-doc-generated/tetrapak_application_stage_data_model_integrations.json)

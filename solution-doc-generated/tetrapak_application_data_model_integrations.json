@@ -1,0 +1,156 @@
+{
+  "integrations": [
+    {
+      "type": "WriteApiIntegration",
+      "integrationId": "tetrapak-create-application",
+      "responseConfig": {
+        "responseType": "SINGLE_ENTITY",
+        "jsonataExpression": "$.data"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.candidate.firstName) and inputData.candidate.firstName != null"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists(inputData.job.id) and inputData.job.id != null"
+        }
+      ],
+      "dataModelTarget": {
+        "dataModelJsonataExpression": "{ \"JOVEO_APPLICATION_ID\": $uuid(), \"JOVEO_APPLICATION_CUSTOMER_ID\": \"{{customer_id}}\", \"ATS_APPLICATION_ID\": $.id, \"ATS_APPLICATION_CANDIDATE_ID\": $.candidate_id, \"ATS_APPLICATION_JOB_ID\": $.job_id, \"ATS_APPLICATION_STATUS\": $.status, \"ATS_APPLICATION_APPLIED_DATE\": $fromMillis($toMillis($replace($.applied_date, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_CREATED_DATE\": $fromMillis($toMillis($replace($.created_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_LAST_UPDATED_DATE\": $fromMillis($toMillis($replace($.updated_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_INSERTED_AT\": $now(), \"ATS_APPLICATION_UPDATED_AT\": $now(), \"ATS_APPLICATION_IS_DELETED\": false, \"ATS_APPLICATION_CUSTOM_FIELDS\": { \"work_authorization\": $.custom_fields.work_authorization, \"relocation_willingness\": $.custom_fields.relocation_willingness, \"salary_expectation\": $.custom_fields.salary_expectation, \"cover_letter\": $.cover_letter }, \"ATS_APPLICATION_AUDIT\": { \"created_by\": $.created_by, \"updated_by\": $.updated_by }, \"ATS_APPLICATION_SOURCE\": $.source, \"ATS_APPLICATION_ANSWERS\": $map($.answers, function($ans) { { \"question_id\": $ans.question_id, \"question\": $ans.question, \"answer\": $ans.answer } }), \"ATS_APPLICATION_TAGS\": $.tags }",
+        "targetFields": [
+          "JOVEO_APPLICATION_ID", "JOVEO_APPLICATION_CUSTOMER_ID", "ATS_APPLICATION_ID", "ATS_APPLICATION_CANDIDATE_ID", "ATS_APPLICATION_JOB_ID", "ATS_APPLICATION_STATUS", "ATS_APPLICATION_APPLIED_DATE", "ATS_APPLICATION_CREATED_DATE", "ATS_APPLICATION_LAST_UPDATED_DATE", "ATS_APPLICATION_INSERTED_AT", "ATS_APPLICATION_UPDATED_AT", "ATS_APPLICATION_IS_DELETED", "ATS_APPLICATION_CUSTOM_FIELDS", "ATS_APPLICATION_AUDIT", "ATS_APPLICATION_SOURCE", "ATS_APPLICATION_ANSWERS", "ATS_APPLICATION_TAGS"
+        ],
+        "targetOperation": "INSERT"
+      },
+      "method": "POST",
+      "authTypes": ["API_KEY"],
+      "apiPath": "/api/v1/applications",
+      "headers": {
+        "X-API-KEY": "{{api_key}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "requestPayload": {
+        "requestBody": "{\"job_id\": \"${inputData.job.id}\", \"candidate\": { \"first_name\": \"${inputData.candidate.firstName}\", \"last_name\": \"${inputData.candidate.lastName}\", \"email\": \"${inputData.candidate.email}\", \"phone\": \"${inputData.candidate.phone}\", \"address\": { \"street\": \"${inputData.candidate.address.street}\", \"city\": \"${inputData.candidate.address.city}\", \"state\": \"${inputData.candidate.address.state}\", \"country\": \"${inputData.candidate.address.country}\", \"postal_code\": \"${inputData.candidate.address.postalCode}\" }, \"experience_years\": ${inputData.candidate.experienceYears}, \"current_position\": \"${inputData.candidate.currentPosition}\", \"current_company\": \"${inputData.candidate.currentCompany}\", \"skills\": ${inputData.candidate.skills}, \"education\": ${inputData.candidate.education} }, \"resume_url\": \"${inputData.resumeUrl}\", \"cover_letter\": \"${inputData.coverLetter}\", \"answers\": ${inputData.answers}, \"custom_fields\": { \"work_authorization\": \"${inputData.customFields.workAuthorization}\", \"relocation_willingness\": ${inputData.customFields.relocationWillingness}, \"salary_expectation\": ${inputData.customFields.salaryExpectation} }, \"source\": \"mojo_apply\"}",
+        "requestBodyConverter": []
+      },
+      "responseHandlers": [
+        {
+          "statusCode": 201,
+          "bodyRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "$exists($.id)"
+            }
+          ],
+          "jsonataConvertorExpression": "{ \"applicationId\": $.id, \"status\": $.status, \"appliedDate\": $.applied_date }"
+        },
+        {
+          "statusCode": 400,
+          "bodyRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "jsonataConvertorExpression": "{ \"errorMessage\": \"Invalid application data\", \"details\": $.message }"
+        },
+        {
+          "statusCode": 0,
+          "bodyRules": [
+            {
+              "type": "BooleanExpressionRule",
+              "jsonataExpression": "true"
+            }
+          ],
+          "jsonataConvertorExpression": "{ \"errorMessage\": \"Integration not executed\" }"
+        }
+      ]
+    },
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "tetrapak-get-applications",
+      "responseConfig": {
+        "responseType": "ARRAY_OF_ENTITIES",
+        "jsonataExpression": "$.data.applications"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$count($$) > 0"
+        },
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "$exists($.id) and $.id != null"
+        }
+      ],
+      "dataModelTarget": {
+        "dataModelJsonataExpression": "$map($$, function($app) { { \"JOVEO_APPLICATION_ID\": $uuid(), \"JOVEO_APPLICATION_CUSTOMER_ID\": \"{{customer_id}}\", \"ATS_APPLICATION_ID\": $app.id, \"ATS_APPLICATION_CANDIDATE_ID\": $app.candidate_id, \"ATS_APPLICATION_JOB_ID\": $app.job_id, \"ATS_APPLICATION_STATUS\": $app.status, \"ATS_APPLICATION_APPLIED_DATE\": $fromMillis($toMillis($replace($app.applied_date, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_CREATED_DATE\": $fromMillis($toMillis($replace($app.created_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_LAST_UPDATED_DATE\": $fromMillis($toMillis($replace($app.updated_at, /\\+\\d{2}:\\d{2}$/, \"\") & \"Z\")), \"ATS_APPLICATION_INSERTED_AT\": $now(), \"ATS_APPLICATION_UPDATED_AT\": $now(), \"ATS_APPLICATION_IS_DELETED\": false, \"ATS_APPLICATION_CUSTOM_FIELDS\": { \"work_authorization\": $app.custom_fields.work_authorization, \"relocation_willingness\": $app.custom_fields.relocation_willingness, \"salary_expectation\": $app.custom_fields.salary_expectation, \"cover_letter\": $app.cover_letter }, \"ATS_APPLICATION_AUDIT\": { \"created_by\": $app.created_by, \"updated_by\": $app.updated_by }, \"ATS_APPLICATION_SOURCE\": $app.source, \"ATS_APPLICATION_ANSWERS\": $map($app.answers, function($ans) { { \"question_id\": $ans.question_id, \"question\": $ans.question, \"answer\": $ans.answer } }), \"ATS_APPLICATION_TAGS\": $app.tags } })",
+        "targetFields": [
+          "JOVEO_APPLICATION_ID", "JOVEO_APPLICATION_CUSTOMER_ID", "ATS_APPLICATION_ID", "ATS_APPLICATION_CANDIDATE_ID", "ATS_APPLICATION_JOB_ID", "ATS_APPLICATION_STATUS", "ATS_APPLICATION_APPLIED_DATE", "ATS_APPLICATION_CREATED_DATE", "ATS_APPLICATION_LAST_UPDATED_DATE", "ATS_APPLICATION_INSERTED_AT", "ATS_APPLICATION_UPDATED_AT", "ATS_APPLICATION_IS_DELETED", "ATS_APPLICATION_CUSTOM_FIELDS", "ATS_APPLICATION_AUDIT", "ATS_APPLICATION_SOURCE", "ATS_APPLICATION_ANSWERS", "ATS_APPLICATION_TAGS"
+        ],
+        "targetOperation": "UPSERT"
+      },
+      "method": "GET",
+      "authTypes": ["API_KEY"],
+      "apiPath": "/api/v1/applications",
+      "headers": {
+        "X-API-KEY": "{{api_key}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "queryParams": {
+        "page": "${page}",
+        "size": "100",
+        "status": "all"
+      },
+      "paginationConfig": {
+        "type": "PageConfig",
+        "pageSize": 100,
+        "pageNumberKey": "page",
+        "hasMoreDataJsonataExpression": "$exists($.data.next_page)"
+      },
+      "dateRangeConfig": {
+        "startDateTimeKey": "appliedSince",
+        "endDateTimeKey": "appliedBefore",
+        "dateTimeFormat": "yyyy-MM-dd'T'HH:mm:ss"
+      }
+    },
+    {
+      "type": "ReadApiIntegration",
+      "integrationId": "tetrapak-get-applications-demo",
+      "responseConfig": {
+        "responseType": "SINGLE_ENTITY",
+        "jsonataExpression": "$"
+      },
+      "dataModelRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "true"
+        }
+      ],
+      "dataModelTarget": null,
+      "integrationDependency": null,
+      "failSilently": true,
+      "method": "GET",
+      "authTypes": ["API_KEY"],
+      "apiPath": "/api/v1/applications",
+      "headers": {
+        "X-API-KEY": "{{api_key}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      "queryParams": {
+        "PageSize": 1
+      },
+      "executionEligibilityRules": [
+        {
+          "type": "BooleanExpressionRule",
+          "jsonataExpression": "true"
+        }
+      ]
+    }
+  ]
+}

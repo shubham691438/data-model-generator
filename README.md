@@ -413,5 +413,11 @@ For questions or support regarding ATS integrations:
 - **Testing**: Use [JSONata Playground](https://try.jsonata.org) for expression validation
 
 ---
+Testing prompt: - 
+For solution Doc- 
+"Added the BRD in the BRD-Provided Folder, generate the solution document in the solution-doc-generated directory 
+=> go throught the template BRD-templates and solution-doc-templates, take .cursor rules in considaration to generate the solution doc
+update the rule accordingly"
+
 
 *Last updated: December 2024*
