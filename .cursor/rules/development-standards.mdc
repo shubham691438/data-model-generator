@@ -1,0 +1,75 @@
+# Development Standards & Best Practices
+
+## Code Quality Standards
+- **Test Coverage:** Maintain 80%+ test coverage for all components
+- **Code Review:** All code must pass peer review before merging
+- **Documentation:** Document all public APIs and complex business logic
+- **Error Handling:** Implement comprehensive error handling with meaningful messages
+- **Logging:** Use structured logging with appropriate log levels
+
+## Solution Documentation Requirements
+All development work must be documented using the [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md) template:
+- **API Specifications:** Complete endpoint documentation with request/response schemas
+- **Integration Details:** External system integration specifications
+- **Configuration Requirements:** Environment variables and setup instructions
+- **Testing Procedures:** Unit, integration, and system testing approaches
+
+## Language-Specific Standards
+
+### Java (Spring Boot)
+- Use Spring Boot 3.x with Java 17+
+- Follow Spring Boot best practices and conventions
+- Use JPA/Hibernate for database operations
+- Implement proper exception handling with @ControllerAdvice
+- Use Spring Security for authentication and authorization
+
+### Python (FastAPI)
+- Use FastAPI with Python 3.9+
+- Implement proper type hints throughout
+- Use Pydantic models for data validation
+- Follow PEP 8 style guidelines
+- Use async/await for I/O operations
+
+### TypeScript/JavaScript (React/Next.js)
+- Use TypeScript for all new development
+- Follow React hooks best practices
+- Implement proper error boundaries
+- Use Next.js 13+ with App Router
+- Follow ESLint and Prettier configurations
+
+### SQL
+- Use parameterized queries to prevent SQL injection
+- Implement proper indexing for performance
+- Use transactions for data consistency
+- Follow naming conventions (snake_case for tables/columns)
+
+## Testing Requirements
+- **Unit Tests:** Test individual functions and methods
+- **Integration Tests:** Test component interactions
+- **API Tests:** Test all API endpoints with Postman/Newman
+- **Performance Tests:** Load testing with JMeter/K6
+- **Security Tests:** OWASP Top 10 vulnerability testing
+
+## Git Workflow
+- **Branch Naming:** feature/component-name, bugfix/issue-description
+- **Commit Messages:** Use conventional commit format
+- **Pull Requests:** Require code review and CI/CD passing
+- **Merge Strategy:** Use squash and merge for clean history
+
+## Performance Guidelines
+- **Database Queries:** Optimize queries and use appropriate indexes
+- **Caching:** Implement Redis caching for frequently accessed data
+- **Async Operations:** Use async/await for I/O operations
+- **Resource Management:** Properly close connections and resources
+- **Monitoring:** Implement performance monitoring and alerting
+
+## Documentation Standards
+- **API Documentation:** Use OpenAPI 3.0 specifications
+- **Code Comments:** Document complex business logic and algorithms
+- **README Files:** Maintain up-to-date project documentation
+- **Change Logs:** Track all significant changes and updates
+- **Integration Guides:** Document external system integrations
+description:
+globs:
+alwaysApply: true
+---

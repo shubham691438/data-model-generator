@@ -1,0 +1,133 @@
+# Solution Document Template Guidelines
+
+## Template Reference
+Always use [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md) as the standard template for creating solution documents.
+
+## Document Structure Requirements
+
+### Section 1: Client and Context
+- **Client Name:** Full company name
+- **ATS Name:** Specific system or integration name
+- **BRD Link:** Must link to corresponding BRD document
+- **Request Type:** Specify integration types (CRM, Easy Apply, Job Ingestion, etc.)
+- **POC:** Business contact name and email
+
+### Section 2: Scope of Implementation
+- **Integration Types:** Check all applicable integration types
+- **Products Involved:** List all affected systems and products
+- **Goal:** Clear business objective and problem statement
+
+### Section 3: Solution Components
+
+#### 3.1 Authentication & Authorization
+- **Auth Type:** OAuth 2.0, API Key, JWT, or combination
+- **Token Strategy:** Expiry times and refresh mechanisms
+- **Security:** MFA, RBAC, encryption, audit logging
+
+#### 3.2 Data Exchange & Architecture
+- **Diagram:** Use draw.io or ASCII diagrams for system architecture
+- **Data Flow:** Describe how data moves between systems
+- **Integration Patterns:** Event-driven, real-time, batch processing
+
+#### 3.3 Setup & Configuration
+- **Prerequisites:** Infrastructure and software requirements
+- **Configuration Steps:** Step-by-step setup instructions
+- **Environment Variables:** All required configuration
+- **Scheduled Jobs:** Cron jobs and automation
+
+#### 3.4 APIs Used
+- **Complete API Table:** Method, endpoint, purpose, rate limits
+- **Rate Limiting:** Respect external API constraints
+- **Error Handling:** Retry logic and fallback strategies
+
+#### 3.5 API Response Field Mapping
+- **JSON Schemas:** Complete field definitions
+- **Data Types:** String, number, boolean, enum values
+- **Validation Rules:** Required vs optional fields
+
+#### 3.6 Known Limitations & Unknowns
+- **Technical Limitations:** System constraints and boundaries
+- **Business Limitations:** Process and policy constraints
+- **Unknowns:** Areas requiring further investigation
+
+#### 3.7 Custom Asks / Business-Specific Logic
+- **Custom Fields:** Business-specific data requirements
+- **Data Transformation:** Parsing, normalization, enrichment
+- **Manual Processes:** Human intervention requirements
+
+#### 3.8 Timeline & Milestones
+- **Project Phases:** Clear milestone definitions
+- **Ownership:** Team member responsibilities
+- **Status Tracking:** Progress indicators
+
+#### 3.9 Dependencies
+- **External Dependencies:** Third-party systems and APIs
+- **Internal Dependencies:** Team resources and infrastructure
+- **Risk Assessment:** Probability and impact of delays
+
+### Section 4: Review & Sign-off
+- **Stakeholder Matrix:** All required reviewers
+- **Review Status:** Tracking of approval progress
+- **Comments:** Feedback and action items
+
+### Appendix
+- **Jira Tickets:** Project tracking links
+- **Postman Collections:** API testing resources
+- **Sample Payloads:** Development examples
+- **Knowledge Base:** Related documentation
+
+## Quality Standards
+
+### Required Elements
+- ✅ **Complete Sections:** All template sections must be filled
+- ✅ **Cross-References:** Links to BRD and related documents
+- ✅ **Technical Accuracy:** Validated technical specifications
+- ✅ **Business Alignment:** Clear business value proposition
+
+### Documentation Standards
+- **Consistency:** Follow template format exactly
+- **Clarity:** Use clear, concise language
+- **Completeness:** No placeholder text left unfilled
+- **Accuracy:** Validate all technical details
+
+### Maintenance Requirements
+- **Version Control:** Track document versions
+- **Regular Updates:** Update as requirements change
+- **Stakeholder Review:** Regular validation with business teams
+- **Cross-Reference Updates:** Maintain document links
+
+## Integration with Other Documents
+
+### BRD Linkage
+- **Bidirectional Links:** BRD must link to solution document
+- **Requirement Traceability:** Map solution components to BRD requirements
+- **Change Management:** Update both documents when requirements change
+
+### Technical Documentation
+- **Architecture Alignment:** Ensure consistency with technical architecture
+- **API Documentation:** Align with OpenAPI specifications
+- **Implementation Plan:** Coordinate with project timelines
+
+## Best Practices
+
+### Content Creation
+- **Start Early:** Begin solution document during requirements gathering
+- **Stakeholder Input:** Involve business and technical teams
+- **Iterative Development:** Refine document through development phases
+- **Validation:** Regular review with all stakeholders
+
+### Template Usage
+- **Copy Template:** Use exact template structure
+- **Customize Content:** Adapt to specific integration needs
+- **Maintain Format:** Preserve table structures and formatting
+- **Version Control:** Track changes and updates
+
+### Review Process
+- **Technical Review:** Validate technical specifications
+- **Business Review:** Confirm business requirements
+- **Security Review:** Validate security considerations
+- **Final Approval:** Stakeholder sign-off before implementation
+description:
+globs:
+alwaysApply: true
+---

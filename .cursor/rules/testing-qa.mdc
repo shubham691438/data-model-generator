@@ -1,0 +1,61 @@
+# Testing & Quality Assurance Guidelines
+
+## Testing Strategy
+Follow the comprehensive testing strategy outlined in [Implementation_Solution_Document.md](mdc:solution doc/Implementation_Solution_Document.md) and [Project_Implementation_Plan.md](mdc:solution doc/Project_Implementation_Plan.md).
+
+## Testing Levels & Coverage
+
+### Unit Testing (80%+ Coverage Required)
+- **Java:** Use JUnit 5 with Mockito for mocking
+- **Python:** Use PyTest with pytest-mock
+- **TypeScript:** Use Jest with React Testing Library
+- **Coverage Tools:** JaCoCo (Java), Coverage.py (Python), Jest (TypeScript)
+
+### Integration Testing
+- **API Testing:** Test all endpoints with Postman/Newman
+- **Database Testing:** Test database operations and transactions
+- **Service Testing:** Test service interactions and dependencies
+- **External Integration:** Test third-party service integrations
+
+### System Testing
+- **End-to-End Testing:** Test complete user workflows
+- **Cross-Browser Testing:** Ensure compatibility across browsers
+- **Mobile Testing:** Test responsive design and mobile functionality
+- **Performance Testing:** Load and stress testing with JMeter/K6
+
+### Security Testing
+- **OWASP Top 10:** Regular vulnerability assessments
+- **Penetration Testing:** External security audits
+- **Code Scanning:** Static and dynamic code analysis
+- **Dependency Scanning:** Regular vulnerability scans
+
+## Test Data Management
+- **Synthetic Data:** Generate realistic test data
+- **Data Isolation:** Separate test and production data
+- **Data Refresh:** Regular updates to maintain relevance
+- **PII Protection:** Never use real PII in tests
+
+## Quality Gates
+- **Code Review:** All code must pass peer review
+- **Automated Testing:** All tests must pass in CI/CD pipeline
+- **Performance Benchmarks:** Meet performance requirements
+- **Security Compliance:** Pass security scans
+- **Documentation:** Complete and up-to-date documentation
+
+## Testing Tools & Infrastructure
+- **Test Management:** Jira Test Management, TestRail
+- **Automation:** Selenium, Cypress, custom frameworks
+- **Performance:** JMeter, K6, custom performance tools
+- **Security:** OWASP ZAP, SonarQube, manual testing
+- **Monitoring:** Application performance monitoring tools
+
+## Test Documentation
+- **Test Plans:** Comprehensive test planning documents
+- **Test Cases:** Detailed test case specifications
+- **Test Results:** Document all test results and issues
+- **Regression Testing:** Maintain regression test suites
+- **User Acceptance:** Business stakeholder validation
+description:
+globs:
+alwaysApply: true
+---

@@ -1,0 +1,66 @@
+# Integration & Configuration Guidelines
+
+## System Integration Standards
+Follow the integration architecture defined in [Technical_Architecture_Details.md](mdc:solution doc/Technical_Architecture_Details.md) for:
+- **ATS Integration:** Greenhouse, Workday, BambooHR
+- **Job Board Integration:** Indeed, LinkedIn, Glassdoor
+- **External Services:** Email, SMS, Analytics providers
+
+## Solution Documentation Requirements
+All integrations must be documented using the [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md) template:
+- **Integration Specifications:** Complete API and data flow documentation
+- **Configuration Details:** Environment setup and configuration requirements
+- **Error Handling:** Comprehensive error handling and retry strategies
+- **Monitoring & Alerting:** Integration health monitoring and alerting
+
+## Configuration Management
+- **Environment Variables:** Use .env files for environment-specific configuration
+- **Secrets Management:** Never commit secrets to version control
+- **Configuration Validation:** Validate all configuration at startup
+- **Feature Flags:** Implement feature flags for gradual rollout
+
+## Docker & Containerization
+- **Base Images:** Use official, minimal base images
+- **Multi-stage Builds:** Optimize image size with multi-stage builds
+- **Health Checks:** Implement proper health checks for all services
+- **Resource Limits:** Set appropriate CPU and memory limits
+- **Security Scanning:** Scan images for vulnerabilities before deployment
+
+## Kubernetes Configuration
+- **Resource Requests/Limits:** Always specify resource requirements
+- **Health Checks:** Implement readiness and liveness probes
+- **Service Discovery:** Use proper service naming conventions
+- **ConfigMaps/Secrets:** Store configuration and secrets properly
+- **Horizontal Pod Autoscaling:** Configure HPA for auto-scaling
+
+## API Integration
+- **Rate Limiting:** Respect external API rate limits
+- **Retry Logic:** Implement exponential backoff for failed requests
+- **Circuit Breaker:** Use circuit breaker pattern for external dependencies
+- **Timeout Configuration:** Set appropriate timeouts for all external calls
+- **Error Handling:** Handle and log all integration errors
+
+## Data Synchronization
+- **Real-time Sync:** Implement webhook-based real-time updates
+- **Batch Processing:** Use scheduled jobs for bulk data synchronization
+- **Conflict Resolution:** Implement timestamp-based conflict resolution
+- **Data Validation:** Validate all data before processing
+- **Monitoring:** Monitor sync performance and error rates
+
+## Security Configuration
+- **TLS/SSL:** Enable TLS 1.3 for all external communications
+- **API Keys:** Rotate API keys regularly
+- **Access Control:** Implement least privilege access
+- **Audit Logging:** Log all external API calls
+- **Vulnerability Scanning:** Regular security scans of dependencies
+
+## Integration Testing
+- **API Testing:** Test all integration endpoints with Postman/Newman
+- **Data Validation:** Verify data transformation and mapping
+- **Error Scenarios:** Test error handling and recovery
+- **Performance Testing:** Validate integration performance under load
+- **Security Testing:** Verify authentication and authorization
+description:
+globs:
+alwaysApply: true
+---

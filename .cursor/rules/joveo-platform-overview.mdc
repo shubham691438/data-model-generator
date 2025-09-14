@@ -1,0 +1,39 @@
+# Joveo Platform Integration Project Overview
+
+This project implements a unified recruitment platform integrating CRM, job ingestion, career site, chatbot, intergroup sync, and Mojo + Easy Apply systems.
+
+## Project Structure
+- **Main Solution Document:** [Implementation_Solution_Document.md](mdc:solution doc/Implementation_Solution_Document.md)
+- **Technical Architecture:** [Technical_Architecture_Details.md](mdc:solution doc/Technical_Architecture_Details.md)
+- **Implementation Plan:** [Project_Implementation_Plan.md](mdc:solution doc/Project_Implementation_Plan.md)
+- **Solution Document Template:** [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md)
+- **Quick Reference:** [README.md](mdc:solution doc/README.md)
+
+## Key System Components
+1. **CRM System** - Customer and candidate relationship management
+2. **Job Ingestion System** - Automated job posting and management
+3. **Career Site & Landing Page** - Public-facing candidate interface
+4. **Chatbot System** - AI-powered user support
+5. **Intergroup CRM Sync** - Bi-directional data synchronization
+6. **Mojo + Easy Apply** - Enhanced application process
+
+## Technology Stack
+- **Frontend:** React.js, Next.js, TypeScript
+- **Backend:** Spring Boot (Java), FastAPI (Python), Express.js (Node.js)
+- **Databases:** PostgreSQL, MongoDB, Redis
+- **Cloud:** AWS/Azure hybrid approach
+- **Containerization:** Docker, Kubernetes
+
+## Implementation Phases
+- **Phase 1:** Foundation & Core Systems (8-10 weeks)
+- **Phase 2:** Integration & Synchronization (6-8 weeks)
+- **Phase 3:** User Experience & Advanced Features (8-10 weeks)
+- **Phase 4:** Testing & Optimization (4-6 weeks)
+
+## Success Metrics
+- **Performance:** 99.9% uptime, <500ms API response time
+- **Quality:** 80%+ test coverage, zero critical security vulnerabilities
+- **Business:** 30% reduction in manual data entry, 25% improvement in application completion
+
+## Solution Document Template
+Use [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md) as the standard template for all integration solutions, ensuring consistency across projects.
