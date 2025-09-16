@@ -3,6 +3,14 @@
 ## 🎯 Purpose
 This document provides a systematic prompt rule for generating ATS (Applicant Tracking System) data model integrations. Follow this structured approach to create robust, standardized integrations.
 
+## 📋 File Generation Rules
+
+### Solution Document vs Integration Files
+- **Solution Documents (.md)**: Generated when BRD is provided and only documentation is requested
+- **Integration Files (.json)**: Generated when ATS integration development is explicitly requested
+- **Both**: Generated when both solution document and ATS integration are requested
+- **BRD Requirement**: A BRD must be present in the BRD-provided/ directory to trigger any generation
+
 ## 📋 Step-by-Step Process
 
 ### Step 1: Reference Integration Analysis

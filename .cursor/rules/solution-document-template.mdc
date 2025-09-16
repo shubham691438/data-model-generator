@@ -3,6 +3,14 @@
 ## Template Reference
 Always use [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform_Solution_Document.md) as the standard template for creating solution documents.
 
+## File Generation Rules
+
+### Solution Document Generation
+- **ONLY generate .md files** when a BRD (Business Requirements Document) is provided
+- **DO NOT generate any .json integration files** when only solution document is requested
+- **Solution documents are standalone** and do not require accompanying data model integration files
+- **BRD requirement**: A BRD must be present in the BRD-provided/ directory to trigger solution document generation
+
 ## Document Structure Requirements
 
 ### Section 1: Client and Context
@@ -75,6 +83,11 @@ Always use [Joveo_Platform_Solution_Document.md](mdc:solution doc/Joveo_Platform
 - **Postman Collections:** API testing resources
 - **Sample Payloads:** Development examples
 - **Knowledge Base:** Related documentation
+
+## Document Control Section Removal
+- **DO NOT include Document Control section** in solution documents
+- **Remove version tracking, last updated, next review fields** from the template
+- **Solution documents should end with the Appendix section** without additional document control metadata
 
 ## Quality Standards
 
