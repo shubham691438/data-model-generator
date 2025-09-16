@@ -1,0 +1,135 @@
+# Data Model Generator - Cursor Rules
+
+## Project Overview
+This project generates solution documents from Business Requirements Documents (BRDs) for ATS integrations, specifically focusing on Mojo Apply implementations.
+
+## File Structure
+```
+data-model-generator/
+├── BRD-provided/           # Input BRD files from clients
+├── BRD_Template/          # BRD templates for different integration types
+├── solution_doc_template/ # Solution document templates (Word format)
+├── solution-doc-generated/ # Generated solution documents (Markdown format)
+├── ats_data/              # ATS data model integrations
+└── venv/                  # Python virtual environment
+```
+
+## BRD to Solution Document Generation Process
+
+### 1. Input Requirements
+- BRD files must be in Excel (.xlsx) format
+- Files should be placed in `BRD-provided/` directory
+- BRD should follow the standard template structure with these sheets:
+  - Customer Details
+  - Features Request
+  - Pull Questions from the ATS
+  - Apply Form
+  - Set Questions Manually
+  - Source Tracking
+  - Domain Access
+  - Static Client Level Question
+  - Job Filter Level Questions
+
+### 2. Processing Steps
+1. **Read BRD Data**: Use `process_brd.py` to extract data from Excel files
+2. **Generate Solution Doc**: Use `generate_solution_doc.py` to create markdown solution document
+3. **Output**: Solution document saved in `solution-doc-generated/` directory
+
+### 3. Solution Document Structure
+The generated solution document includes:
+- Client information and context
+- Integration scope and objectives
+- Technical implementation details
+- Features configuration
+- Question setup (static and job-filter level)
+- Testing strategy
+- Deployment plan
+- Risk assessment
+- Support and maintenance
+
+### 4. Python Environment Setup
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Install required packages (if needed)
+pip install pandas openpyxl python-docx
+
+# Run BRD processing
+python process_brd.py
+
+# Generate solution document
+python generate_solution_doc.py
+```
+
+### 5. Key Features Supported
+- **Mojo Apply**: Joveo's hosted application forms
+- **Client Branded Forms**: Custom domain hosting
+- **Domain Access**: Subdomain configuration
+- **Visual Branding**: Custom styling and branding
+- **Question Configuration**: Static and dynamic questions
+- **Screening Questions**: Automated candidate screening
+- **Multi-page Forms**: Form pagination support
+
+### 6. Data Extraction Rules
+- Customer details extracted from "Customer Details" sheet
+- Features marked as "Yes" in "Features Request" sheet
+- Form configuration from "Apply Form" sheet
+- Static questions from "Static Client Level Question" sheet
+- Dynamic questions from "Job Filter Level Questions" sheet
+- Domain configuration from "Domain Access" sheet
+
+### 7. Output Format
+- Solution documents generated in Markdown (.md) format
+- File naming convention: `{ClientName}_{IntegrationType}_Solution_Document.md`
+- Documents include emojis and structured formatting for readability
+- All sections are properly numbered and cross-referenced
+
+### 8. Quality Assurance
+- All extracted data is validated before document generation
+- Empty or invalid entries are filtered out
+- Document structure follows established templates
+- Generated documents are ready for client review
+
+### 9. Maintenance and Updates
+- Templates can be updated in respective directories
+- New integration types can be added by creating new BRD templates
+- Solution document structure can be modified in `generate_solution_doc.py`
+- Process can be automated for batch processing
+
+### 10. Error Handling
+- Missing sheets are handled gracefully
+- Invalid data formats are logged and skipped
+- Empty responses are filtered out
+- Process continues even if some data is missing
+
+## Usage Examples
+
+### Generate Solution Document for New BRD
+1. Place BRD file in `BRD-provided/` directory
+2. Run: `python process_brd.py`
+3. Run: `python generate_solution_doc.py`
+4. Find generated document in `solution-doc-generated/`
+
+### Update Existing Solution Document
+1. Modify BRD file
+2. Re-run processing scripts
+3. New document will overwrite existing one
+
+### Batch Processing
+- Can be extended to process multiple BRD files
+- Each BRD generates a separate solution document
+- Maintains client-specific configurations
+
+## Dependencies
+- Python 3.9+
+- pandas (Excel file processing)
+- openpyxl (Excel file reading)
+- python-docx (Word document processing)
+- pathlib (File path handling)
+
+## Notes
+- Always use virtual environment for Python dependencies
+- Keep BRD templates updated with latest requirements
+- Test solution documents before client delivery
+- Maintain version control for generated documents

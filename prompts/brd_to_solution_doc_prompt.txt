@@ -1,0 +1,195 @@
+# BRD to Solution Document Generation Prompt
+
+## Primary Prompt Template
+
+```
+Added the BRD in the BRD-Provided Folder, generate the solution document in the solution-doc-generated directory
+
+1) Go through the template BRD-templates and solution-doc-templates, take .cursor rules into consideration to generate the solution doc
+2) Create the solution-doc for the following file BRD in the .md format
+3) Update the rule accordingly
+
+Note: - if there is a need to use the python script and downloading libraries generate the virtual environment
+```
+
+## Detailed Prompt Variations
+
+### For New BRD Processing
+```
+Process the BRD file in BRD-provided folder and generate a comprehensive solution document:
+
+1. **BRD Analysis**: 
+   - Read the BRD Excel file from BRD-provided directory
+   - Extract customer details, features requested, and configuration settings
+   - Identify integration type (Mojo Apply, Easy Apply, CRM, etc.)
+
+2. **Template Review**:
+   - Review corresponding BRD template from BRD_Template directory
+   - Examine solution document templates from solution_doc_template directory
+   - Follow .cursorrules guidelines for document structure
+
+3. **Solution Document Generation**:
+   - Create markdown solution document in solution-doc-generated directory
+   - Include all standard sections: client info, scope, technical details, features, questions, testing, deployment
+   - Use proper formatting with emojis and structured sections
+   - File naming: {ClientName}_{IntegrationType}_Solution_Document.md
+
+4. **Environment Setup**:
+   - Use existing virtual environment or create new one if needed
+   - Install required packages: pandas, openpyxl, python-docx
+   - Process Excel and Word files programmatically
+
+5. **Quality Assurance**:
+   - Validate all extracted data
+   - Ensure document completeness
+   - Follow established templates and formatting standards
+```
+
+### For Batch Processing
+```
+Process multiple BRD files and generate solution documents for each:
+
+1. **Batch Analysis**:
+   - Scan BRD-provided directory for all .xlsx files
+   - Process each BRD file individually
+   - Maintain client-specific configurations
+
+2. **Template Matching**:
+   - Match each BRD to appropriate template type
+   - Apply correct solution document structure
+   - Ensure consistency across all generated documents
+
+3. **Output Management**:
+   - Generate separate solution document for each BRD
+   - Maintain organized file structure
+   - Include processing logs and summaries
+
+4. **Automation**:
+   - Create reusable Python scripts
+   - Implement error handling and validation
+   - Support for different integration types
+```
+
+### For Template Updates
+```
+Update BRD templates and solution document templates:
+
+1. **Template Analysis**:
+   - Review existing BRD templates in BRD_Template directory
+   - Examine solution document templates in solution_doc_template directory
+   - Identify areas for improvement or updates
+
+2. **Template Enhancement**:
+   - Update BRD template structure if needed
+   - Enhance solution document formatting
+   - Add new integration types or features
+
+3. **Rule Updates**:
+   - Update .cursorrules file with new guidelines
+   - Document new processes and requirements
+   - Ensure consistency across all templates
+
+4. **Testing**:
+   - Test updated templates with sample BRD files
+   - Validate generated solution documents
+   - Ensure backward compatibility
+```
+
+## Integration-Specific Prompts
+
+### Mojo Apply Integration
+```
+Generate Mojo Apply solution document:
+
+Focus Areas:
+- Mojo Apply platform configuration
+- Form customization and branding options
+- Question setup (static and dynamic)
+- Multi-page form support
+- ATS integration details
+- Domain access and hosting options
+```
+
+### Easy Apply Integration
+```
+Generate Easy Apply solution document:
+
+Focus Areas:
+- Easy Apply button implementation
+- ATS API integration
+- Data mapping and transformation
+- Error handling and fallback options
+- Performance optimization
+```
+
+### CRM Integration
+```
+Generate CRM solution document:
+
+Focus Areas:
+- CRM system integration
+- Data synchronization
+- Lead management
+- Reporting and analytics
+- Custom field mapping
+```
+
+## Quality Assurance Prompts
+
+### Document Review
+```
+Review and validate generated solution document:
+
+1. **Content Validation**:
+   - Verify all BRD data is accurately reflected
+   - Check for missing information or sections
+   - Ensure technical accuracy
+
+2. **Formatting Check**:
+   - Validate markdown formatting
+   - Check emoji usage and section structure
+   - Ensure consistent styling
+
+3. **Completeness Review**:
+   - Verify all required sections are present
+   - Check for placeholder text that needs replacement
+   - Ensure document is client-ready
+```
+
+### Error Handling
+```
+Handle BRD processing errors:
+
+1. **Missing Data**:
+   - Identify missing or incomplete BRD sections
+   - Provide default values or placeholders
+   - Document missing information for client follow-up
+
+2. **Format Issues**:
+   - Handle malformed Excel files
+   - Process different BRD template versions
+   - Convert data to standard format
+
+3. **Integration Challenges**:
+   - Identify unsupported features
+   - Suggest alternative approaches
+   - Document limitations and workarounds
+```
+
+## Usage Instructions
+
+1. **Select Appropriate Prompt**: Choose the prompt that best matches your specific needs
+2. **Customize as Needed**: Modify the prompt to include specific requirements or constraints
+3. **Follow Process Steps**: Execute each step in the specified order
+4. **Validate Output**: Always review generated documents before delivery
+5. **Update Documentation**: Keep .cursorrules and templates updated with any changes
+
+## Best Practices
+
+- Always use the virtual environment for Python operations
+- Validate BRD data before processing
+- Follow established naming conventions
+- Maintain consistent document formatting
+- Include comprehensive error handling
+- Document any assumptions or limitations
+- Test with sample data before processing real BRDs

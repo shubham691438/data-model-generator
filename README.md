@@ -1,12 +1,13 @@
-# ATS Data Model Generator
+# Data Model Generator
 
-A comprehensive toolkit for generating and managing ATS (Applicant Tracking System) data model integrations. This project provides standardized patterns, templates, and workflows for creating robust integrations with various ATS platforms.
+A comprehensive toolkit for generating solution documents from Business Requirements Documents (BRDs) and managing ATS (Applicant Tracking System) data model integrations. This project provides standardized patterns, templates, and workflows for creating robust integrations with various ATS platforms and generating client-ready solution documents.
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
-- [Workflow Guide](#workflow-guide)
+- [BRD to Solution Document Generation](#brd-to-solution-document-generation)
+- [ATS Integration Workflow](#ats-integration-workflow)
 - [Data Models](#data-models)
 - [Integration Patterns](#integration-patterns)
 - [Best Practices](#best-practices)
@@ -16,8 +17,15 @@ A comprehensive toolkit for generating and managing ATS (Applicant Tracking Syst
 
 ## 🎯 Overview
 
-The ATS Data Model Generator is designed to streamline the creation of integrations with various Applicant Tracking Systems. It provides:
+The Data Model Generator is designed to streamline two main processes:
 
+### 1. BRD to Solution Document Generation
+- **Automated Document Creation**: Generate comprehensive solution documents from Business Requirements Documents
+- **Template-Based Processing**: Use standardized BRD templates for consistent output
+- **Multi-Format Support**: Generate documents in Markdown and Word formats
+- **Client-Ready Output**: Professional documents ready for client review
+
+### 2. ATS Integration Management
 - **Standardized Integration Patterns**: Consistent structure across all ATS integrations
 - **Template-Based Development**: Pre-built templates for common integration scenarios
 - **Comprehensive Rules Engine**: Validation and execution rules for data models
@@ -26,26 +34,91 @@ The ATS Data Model Generator is designed to streamline the creation of integrati
 ## 📁 Project Structure
 
 ```
-ats-data-model-generator/
-├── ats_data/                                    # ATS integration files
+data-model-generator/
+├── BRD-provided/                               # Input BRD files from clients
+│   └── Mojo Apply _Tetra Pak.xlsx
+├── BRD_Template/                              # BRD templates for different integration types
+│   ├── Mojo + Easy Apply _ BRD Template .xlsx
+│   ├── CRM _ BRD Template .xlsx
+│   └── ... (other integration templates)
+├── solution_doc_template/                     # Solution document templates (Word format)
+│   ├── Solution Doc For Family First.docx
+│   └── Solution Document_ ScionHealth.docx
+├── solution-doc-generated/                    # Generated solution documents (Markdown format)
+│   └── Tetra_Pak_Mojo_Apply_Solution_Document.md
+├── prompts/                                   # Prompt templates for document generation
+│   ├── brd_to_solution_doc_prompt.txt
+│   └── README.md
+├── ats_data/                                  # ATS integration files
 │   ├── greenhouse_data_model_integrations.json
 │   ├── workday_data_model_integrations.json
 │   ├── sap_data_model_integrations.json
 │   └── ... (30+ ATS integrations)
-├── ats_application_write_rules.md              # Comprehensive write rules
-├── ats_application_write_templates.json        # Integration templates
-├── ashby_*.json                               # Ashby-specific configurations
+├── venv/                                      # Python virtual environment
+├── .cursorrules                               # Cursor IDE rules and guidelines
+├── requirements.txt                           # Python dependencies
+├── .gitignore                                 # Git ignore rules
 └── README.md                                  # This file
 ```
 
 ### Key Files
 
+#### BRD to Solution Document Generation
+- **`BRD-provided/`**: Input BRD files from clients
+- **`BRD_Template/`**: Standardized BRD templates for different integration types
+- **`solution_doc_template/`**: Word document templates for solution documents
+- **`solution-doc-generated/`**: Generated solution documents in Markdown format
+- **`prompts/`**: Prompt templates for automated document generation
+- **`.cursorrules`**: Cursor IDE rules and guidelines for document generation
+
+#### ATS Integration Management
 - **`ats_data/`**: Contains individual ATS integration configurations
 - **`ats_application_write_rules.md`**: Comprehensive rules for APPLICATION data model writes
 - **`ats_application_write_templates.json`**: Reusable templates for common patterns
 - **Ashby files**: Reference implementations and webhook configurations
 
-## 🔄 Workflow Guide
+## 📄 BRD to Solution Document Generation
+
+### Quick Start
+
+1. **Place BRD File**: Add your BRD Excel file to the `BRD-provided/` directory
+2. **Use Prompt Template**: Copy the prompt from `prompts/brd_to_solution_doc_prompt.txt`
+3. **Generate Document**: Run the generation process using Cursor AI
+4. **Review Output**: Check the generated document in `solution-doc-generated/`
+
+### Supported Integration Types
+
+- **Mojo Apply**: Joveo's hosted application forms
+- **Easy Apply**: ATS-integrated application buttons  
+- **CRM Integration**: Customer relationship management systems
+- **Job Ingestion**: Job posting and management
+- **Career Site**: Company career page integration
+- **Chatbot**: AI-powered candidate interaction
+
+### Document Structure
+
+Generated solution documents include:
+- Client information and context
+- Integration scope and objectives
+- Technical implementation details
+- Features configuration
+- Question setup (static and job-filter level)
+- Testing strategy and deployment plan
+- Risk assessment and support details
+
+### Usage Example
+
+```
+Added the BRD in the BRD-Provided Folder, generate the solution document in the solution-doc-generated directory
+
+1) Go through the template BRD-templates and solution-doc-templates, take .cursor rules into consideration to generate the solution doc
+2) Create the solution-doc for the following file BRD in the .md format
+3) Update the rule accordingly
+
+Note: - if there is a need to use the python script and downloading libraries generate the virtual environment
+```
+
+## 🔄 ATS Integration Workflow
 
 ### Step 1: Identify a Reference Integration (~15 minutes)
 
@@ -415,9 +488,12 @@ For questions or support regarding ATS integrations:
 ---
 Testing prompt: - 
 For solution Doc- 
-"Added the BRD in the BRD-Provided Folder, generate the solution document in the solution-doc-generated directory 
-=> go throught the template BRD-templates and solution-doc-templates, take .cursor rules in considaration to generate the solution doc
-update the rule accordingly"
+"Added the BRD in the BRD-Provided Folder, generate the solution document in the solution-doc-generated directory
+1) go throught the template BRD-templates and solution-doc-templates, take .cursor rules in considaration to g   enerate the solution doc 
+2) Create the solution-doc for the following file BRD in the .md format
+3) update the rule accordingly
+Note: - if there is a need to use the python script and downloading libraries generate the virtual Enviroment
+"
 
 
 *Last updated: December 2024*
