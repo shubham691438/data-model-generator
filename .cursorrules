@@ -1,23 +1,26 @@
 # Data Model Generator - Cursor Rules
 
 ## Project Overview
-This project generates solution documents from Business Requirements Documents (BRDs) for ATS integrations, specifically focusing on Mojo Apply implementations.
+This project generates solution documents from Business Requirements Documents (BRDs) for ATS integrations, supporting multiple integration types including Mojo Apply, S2S Funnel Tracking, and CRM integrations.
 
 ## File Structure
 ```
 data-model-generator/
-├── BRD-provided/           # Input BRD files from clients
+├── BRD-provided/           # Input BRD files from clients (.xlsx and .docx)
 ├── BRD_Template/          # BRD templates for different integration types
 ├── solution_doc_template/ # Solution document templates (Word format)
 ├── solution-doc-generated/ # Generated solution documents (Markdown format)
 ├── ats_data/              # ATS data model integrations
+├── prompts/               # BRD processing prompts and templates
+├── process_brd.py         # Python script to process BRD files
+├── generate_solution_doc.py # Python script to generate solution documents
 └── venv/                  # Python virtual environment
 ```
 
 ## BRD to Solution Document Generation Process
 
 ### 1. Input Requirements
-- BRD files must be in Excel (.xlsx) format
+- BRD files can be in Excel (.xlsx) or Word (.docx) format
 - Files should be placed in `BRD-provided/` directory
 - BRD should follow the standard template structure with these sheets:
   - Customer Details
@@ -39,9 +42,9 @@ data-model-generator/
 The generated solution document includes:
 - Client information and context
 - Integration scope and objectives
-- Technical implementation details
+- Solution components (excluding Section 3.1 "Data Exchange & Architecture")
 - Features configuration
-- Question setup (static and job-filter level)
+- Technical implementation details
 - Testing strategy
 - Deployment plan
 - Risk assessment
@@ -64,6 +67,8 @@ python generate_solution_doc.py
 
 ### 5. Key Features Supported
 - **Mojo Apply**: Joveo's hosted application forms
+- **S2S Funnel Tracking**: Server-to-server data tracking and analytics
+- **CRM Integration**: Customer relationship management integration
 - **Client Branded Forms**: Custom domain hosting
 - **Domain Access**: Subdomain configuration
 - **Visual Branding**: Custom styling and branding
@@ -72,18 +77,20 @@ python generate_solution_doc.py
 - **Multi-page Forms**: Form pagination support
 
 ### 6. Data Extraction Rules
-- Customer details extracted from "Customer Details" sheet
-- Features marked as "Yes" in "Features Request" sheet
-- Form configuration from "Apply Form" sheet
-- Static questions from "Static Client Level Question" sheet
-- Dynamic questions from "Job Filter Level Questions" sheet
-- Domain configuration from "Domain Access" sheet
+- Customer details extracted from "Customer Details" sheet (Excel) or document content (Word)
+- Features marked as "Yes" in "Features Request" sheet (Excel) or identified from content (Word)
+- Form configuration from "Apply Form" sheet (Excel)
+- Static questions from "Static Client Level Question" sheet (Excel)
+- Dynamic questions from "Job Filter Level Questions" sheet (Excel)
+- Domain configuration from "Domain Access" sheet (Excel)
+- Integration type automatically identified from content or features
 
 ### 7. Output Format
 - Solution documents generated in Markdown (.md) format
 - File naming convention: `{ClientName}_{IntegrationType}_Solution_Document.md`
 - Documents include emojis and structured formatting for readability
 - All sections are properly numbered and cross-referenced
+- Section 3.1 "Data Exchange & Architecture" is excluded from the document structure
 
 ### 8. Quality Assurance
 - All extracted data is validated before document generation
@@ -102,6 +109,8 @@ python generate_solution_doc.py
 - Invalid data formats are logged and skipped
 - Empty responses are filtered out
 - Process continues even if some data is missing
+- Both Excel and Word file formats are supported with appropriate error handling
+- Integration type detection includes fallback mechanisms
 
 ## Usage Examples
 

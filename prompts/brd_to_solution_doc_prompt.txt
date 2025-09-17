@@ -19,9 +19,10 @@ Note: - if there is a need to use the python script and downloading libraries ge
 Process the BRD file in BRD-provided folder and generate a comprehensive solution document:
 
 1. **BRD Analysis**: 
-   - Read the BRD Excel file from BRD-provided directory
+   - Use process_brd.py to read BRD files (both Excel .xlsx and Word .docx formats)
    - Extract customer details, features requested, and configuration settings
-   - Identify integration type (Mojo Apply, Easy Apply, CRM, etc.)
+   - Identify integration type (Mojo Apply, S2S Funnel Tracking, CRM, etc.)
+   - Process data and save to processed_brd_data.json
 
 2. **Template Review**:
    - Review corresponding BRD template from BRD_Template directory
@@ -29,20 +30,23 @@ Process the BRD file in BRD-provided folder and generate a comprehensive solutio
    - Follow .cursorrules guidelines for document structure
 
 3. **Solution Document Generation**:
-   - Create markdown solution document in solution-doc-generated directory
-   - Include all standard sections: client info, scope, technical details, features, questions, testing, deployment
+   - Use generate_solution_doc.py to create markdown solution document
+   - Include all standard sections: client info, scope, solution components, features, technical details, testing, deployment
    - Use proper formatting with emojis and structured sections
    - File naming: {ClientName}_{IntegrationType}_Solution_Document.md
+   - Note: Section 3.1 "Data Exchange & Architecture" is excluded from the document structure
 
 4. **Environment Setup**:
-   - Use existing virtual environment or create new one if needed
+   - Use existing virtual environment: source venv/bin/activate
    - Install required packages: pandas, openpyxl, python-docx
-   - Process Excel and Word files programmatically
+   - Run: python process_brd.py (to process BRD files)
+   - Run: python generate_solution_doc.py (to generate solution documents)
 
 5. **Quality Assurance**:
    - Validate all extracted data
    - Ensure document completeness
    - Follow established templates and formatting standards
+   - Verify integration type is correctly identified and applied
 ```
 
 ### For Batch Processing
@@ -50,24 +54,24 @@ Process the BRD file in BRD-provided folder and generate a comprehensive solutio
 Process multiple BRD files and generate solution documents for each:
 
 1. **Batch Analysis**:
-   - Scan BRD-provided directory for all .xlsx files
-   - Process each BRD file individually
-   - Maintain client-specific configurations
+   - Use process_brd.py to scan BRD-provided directory for all .xlsx and .docx files
+   - Process each BRD file individually using the automated script
+   - Maintain client-specific configurations in processed_brd_data.json
 
 2. **Template Matching**:
-   - Match each BRD to appropriate template type
-   - Apply correct solution document structure
+   - Match each BRD to appropriate template type automatically
+   - Apply correct solution document structure based on integration type
    - Ensure consistency across all generated documents
 
 3. **Output Management**:
-   - Generate separate solution document for each BRD
-   - Maintain organized file structure
+   - Use generate_solution_doc.py to generate separate solution document for each BRD
+   - Maintain organized file structure in solution-doc-generated directory
    - Include processing logs and summaries
 
 4. **Automation**:
-   - Create reusable Python scripts
+   - Use existing Python scripts: process_brd.py and generate_solution_doc.py
    - Implement error handling and validation
-   - Support for different integration types
+   - Support for different integration types (Mojo Apply, S2S Funnel Tracking, CRM, etc.)
 ```
 
 ### For Template Updates
@@ -134,6 +138,19 @@ Focus Areas:
 - Custom field mapping
 ```
 
+### S2S Funnel Tracking Integration
+```
+Generate S2S Funnel Tracking solution document:
+
+Focus Areas:
+- Server-to-server data tracking
+- sFTP integration and credentials
+- Funnel analytics and reporting
+- Data processing and validation
+- Real-time tracking capabilities
+- Analytics dashboard integration
+```
+
 ## Quality Assurance Prompts
 
 ### Document Review
@@ -186,10 +203,13 @@ Handle BRD processing errors:
 
 ## Best Practices
 
-- Always use the virtual environment for Python operations
-- Validate BRD data before processing
-- Follow established naming conventions
-- Maintain consistent document formatting
-- Include comprehensive error handling
+- Always use the virtual environment for Python operations: `source venv/bin/activate`
+- Use the automated Python scripts: `process_brd.py` and `generate_solution_doc.py`
+- Validate BRD data before processing using the built-in validation
+- Follow established naming conventions for generated documents
+- Maintain consistent document formatting (exclude Section 3.1 "Data Exchange & Architecture")
+- Include comprehensive error handling in Python scripts
 - Document any assumptions or limitations
 - Test with sample data before processing real BRDs
+- Support both Excel (.xlsx) and Word (.docx) BRD formats
+- Ensure integration type is correctly identified and applied
